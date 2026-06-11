@@ -4,7 +4,9 @@
 
 ## 当前状态
 
-项目已经完成第一版可运行原型：
+项目已经从单文件版恢复为标准目录结构，支持长期维护和开发。
+
+已完成的 16 场历史样本回测（2018 世界杯 7 场 + 2022 世界杯 9 场），支持赛事总览、跨届汇总、回测仪表盘、模型复盘建议、模型版本对比等完整功能。
 
 - 赛事总览页：按届别查看比赛列表
 - 届别切换：支持 2018、2022、2026 占位
@@ -49,36 +51,33 @@ http://localhost:8000/worldcup-backtest-prototype.html
 
 ## 文件结构
 
+项目已恢复为标准目录结构：
+
 ```text
 worldcup-odds-risk-control/
-  index.html
-  worldcup-backtest-prototype.html
-  worldcup-mobile-standalone.html
-  worldcup-jsbox.js
-  worldcup-jsbox-online.js
+  index.html                    # 正式入口（通过 script 引用模块）
+  index-standalone.html          # 单文件备份（GitHub Pages 出问题时回退用）
   README.md
   DEPLOY.md
   data/
-    tournaments.js
-    matches-2018.js
-    matches-2022.js
-    matches-2026.js
+    tournaments.js             # 赛事注册表
+    matches-2018.js             # 2018 世界杯 7 场
+    matches-2022.js             # 2022 世界杯 9 场
+    matches-2026.js             # 2026 占位 + 录入模板
   engine/
-    config.js
-    scoring.js
-    backtest.js
-    intent.js
-    review.js
-    model-advice.js
-    model-version.js
-    cross-tournament.js
-    validate.js
+    config.js                  # 风控评分配置
+    scoring.js                 # 评分引擎
+    backtest.js               # 回测引擎
+    intent.js                 # 盘口意图
+    review.js                 # 赛后复盘
+    model-advice.js           # 模型建议
+    model-version.js          # 模型版本对比
+    cross-tournament.js       # 跨届汇总
+    validate.js               # 数据校验
   docs/
-    PROJECT_REVIEW.md
-    TRAE_CODE_HANDOFF.md
-    SELF_REVIEW_UPGRADE.md
-    DEVELOPMENT_LOG.md
-    2026_DATA_TEMPLATE.md
+    DEVELOPMENT_LOG.md        # 开发记录
+    2026_DATA_TEMPLATE.md    # 2026 数据录入模板
+    TRAE_CODE_HANDOFF.md     # 交接文档
 ```
 
 ## 核心文件说明

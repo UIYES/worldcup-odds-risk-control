@@ -62,39 +62,33 @@ worldcup-jsbox.js
 
 ## 当前文件形态
 
-因为手机上传文件夹不方便，当前线上真正生效的是：
+项目已从单文件版恢复为标准目录结构：
 
 ```text
-index.html
-```
-
-这是完整单文件版，包含：
-
-- 页面结构
-- 样式
-- 2018 数据
-- 2022 数据
-- 2026 占位和模板
-- 风控评分引擎
-- 回测引擎
-- 盘口意图判断
-- 赛后复盘
-- 模型复盘建议
-- 模型版本对比
-- 跨届汇总看板
-- 数据校验
-
-如果后续在 TRAE Code 或电脑环境开发，建议恢复为标准结构：
-
-```text
-index.html
-worldcup-backtest-prototype.html
+index.html                    # 正式入口（通过 script 引用模块）
+index-standalone.html        # 单文件备份（GitHub Pages 出问题时回退用）
 data/
+  tournaments.js
+  matches-2018.js
+  matches-2022.js
+  matches-2026.js
 engine/
+  config.js
+  scoring.js
+  backtest.js
+  intent.js
+  review.js
+  model-advice.js
+  model-version.js
+  cross-tournament.js
+  validate.js
 docs/
+  DEVELOPMENT_LOG.md
+  2026_DATA_TEMPLATE.md
+  TRAE_CODE_HANDOFF.md
 ```
 
-然后让 `index.html` 作为正式入口，不再使用巨大单文件。
+现在 `index.html` 通过 `<script src="...">` 引用 `data/` 和 `engine/` 的真实文件。
 
 ## 已实现功能
 
@@ -174,6 +168,9 @@ engine/validate.js
 11. 增加跨届汇总看板
 12. 生成 JSBox 离线版
 13. 改造为 GitHub Pages 单文件在线版
+14. 从单文件版恢复标准目录结构（拆分 data/、engine/、docs/，重构 index.html 入口）
+
+## 当前文件形态
 
 ## 当前模型观察
 
@@ -227,20 +224,9 @@ totals: {
 }
 ```
 
-### 第三优先级：恢复标准目录结构
+### 第三优先级：✅ 已完成 - 恢复标准目录结构
 
-当前 `index.html` 是单文件版，方便手机上传，但不适合长期维护。
-
-在 TRAE Code 开发时建议恢复为：
-
-```text
-index.html
-data/
-engine/
-docs/
-```
-
-然后让 `index.html` 引用 `data/` 和 `engine/` 的真实文件。
+已于 2026-06-11 完成从单文件版到标准目录结构的恢复。
 
 ### 第四优先级：在线数据架构
 
