@@ -1,0 +1,3607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界杯赔率风控分析手机版</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --blue: #2563eb;
+      --green: #059669;
+      --red: #dc2626;
+      --orange: #ea580c;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-red: #fef2f2;
+      --soft-orange: #fff7ed;
+      --shadow: 0 12px 36px rgba(15, 23, 42, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .app {
+      width: min(1080px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 24px; letter-spacing: -.4px; }
+    h2 { font-size: 19px; }
+    h3 { font-size: 15px; }
+    p { color: var(--muted); line-height: 1.55; font-size: 13px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.good { color: var(--green); background: var(--soft-green); border-color: #bbf7d0; }
+    .pill.bad { color: var(--red); background: var(--soft-red); border-color: #fecaca; }
+    .pill.warn { color: var(--orange); background: var(--soft-orange); border-color: #fed7aa; }
+    .pill.blue { color: var(--blue); background: var(--soft-blue); border-color: #bfdbfe; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .section {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary {
+      padding: 13px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .summary strong {
+      font-size: 22px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1.25fr .9fr .9fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .board-card {
+      padding: 14px;
+      min-height: 128px;
+    }
+
+    .board-card h2 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .board-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .board-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .board-row strong {
+      font-size: 13px;
+    }
+
+    .board-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    select, button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    button.ghost {
+      background: #fff;
+    }
+
+    .matches {
+      display: grid;
+      gap: 10px;
+    }
+
+    .match {
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .match-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .match-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .decision-strip {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .decision-item {
+      padding: 10px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+    }
+
+    .decision-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .decision-item strong {
+      font-size: 14px;
+    }
+
+    .title-score {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      padding: 4px 9px;
+      border-radius: 10px;
+      background: var(--soft-blue);
+      color: var(--blue);
+      font-size: 16px;
+      vertical-align: middle;
+    }
+
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .ticket {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f9fafb;
+    }
+
+    .ticket.recommended {
+      border-color: #bfdbfe;
+      background: var(--soft-blue);
+    }
+
+    .ticket h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .ticket-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(229,231,235,.8);
+      font-size: 13px;
+    }
+
+    .ticket-line:last-child {
+      border-bottom: 0;
+    }
+
+    .ticket-line span {
+      color: var(--muted);
+    }
+
+    .match-head, .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .teams {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      padding: 10px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .mini strong {
+      font-size: 14px;
+    }
+
+    .final-card {
+      padding: 16px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: #fff;
+      border: 0;
+    }
+
+    .final-card p {
+      color: rgba(255,255,255,.72);
+    }
+
+    .final-grid {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .final-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .final-item span {
+      color: rgba(255,255,255,.65);
+      font-size: 12px;
+    }
+
+    .final-item strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 6px;
+    }
+
+    .score-ring {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--blue) calc(var(--score) * 1%), #e5e7eb 0);
+      margin: 12px auto 8px;
+    }
+
+    .score-ring b {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+
+    .reason-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .reason {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+      font-size: 13px;
+    }
+
+    .reason span {
+      color: var(--muted);
+    }
+
+    .screen.hidden { display: none; }
+
+    .detail-title {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .detail-title h2 {
+      font-size: 24px;
+      margin: 8px 0;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+      position: sticky;
+      top: 0;
+      padding: 8px 0;
+      background: rgba(246,247,251,.92);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .tabs button.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .prob {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .prob span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .prob strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 4px;
+    }
+
+    .bar {
+      height: 7px;
+      background: #e5e7eb;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--blue);
+      border-radius: 99px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .chart {
+      width: 100%;
+      height: 260px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    .score-selector {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      margin-top: 12px;
+    }
+
+    .score-selector button {
+      white-space: nowrap;
+      padding: 8px 10px;
+    }
+
+    .score-selector button.active {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .score-cell {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+
+    .score-cell strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .score-cell span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .heatmap-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+      padding-bottom: 4px;
+    }
+
+    .heatmap {
+      min-width: 720px;
+      display: grid;
+      grid-template-columns: 64px repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .heat-cell {
+      min-height: 58px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .heat-cell.header {
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      align-items: center;
+      text-align: center;
+      min-height: 38px;
+    }
+
+    .heat-cell.score {
+      cursor: pointer;
+    }
+
+    .heat-cell.score.active {
+      outline: 2px solid var(--blue);
+      outline-offset: 1px;
+    }
+
+    .heat-cell strong {
+      font-size: 14px;
+    }
+
+    .heat-cell span {
+      color: #374151;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .market-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .market-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .market-card strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 6px;
+    }
+
+    .note {
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-top: 12px;
+    }
+
+    .note b { color: var(--text); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .tournament-bar { padding: 14px 16px; }
+
+    .tournament-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .tournament-row h2 { font-size: 18px; }
+
+    .tournament-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .tournament-picker label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tournament-picker select {
+      padding: 9px 10px;
+      font-size: 13px;
+    }
+
+    .backtest-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .backtest-card {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .backtest-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .backtest-card strong {
+      display: block;
+      font-size: 22px;
+    }
+
+    .backtest-card p {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .case-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .case-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .case-row strong {
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 20px, 1080px); padding-top: 12px; }
+      .topbar { align-items: flex-start; }
+      h1 { font-size: 21px; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .board { grid-template-columns: 1fr; }
+      .summary strong { font-size: 20px; }
+      .toolbar { display: grid; grid-template-columns: 1fr; }
+      .tournament-row { grid-template-columns: 1fr; }
+      .tournament-picker { min-width: 0; }
+      .backtest-grid { grid-template-columns: repeat(2, 1fr); }
+      .mini-grid { grid-template-columns: repeat(2, 1fr); }
+      .final-grid { grid-template-columns: 1fr 1fr; }
+      .decision-strip { grid-template-columns: 1fr 1fr; }
+      .ticket-grid { grid-template-columns: 1fr; }
+      .tabs { grid-template-columns: repeat(5, minmax(70px, 1fr)); overflow-x: auto; }
+      .tabs button { padding: 9px 8px; font-size: 12px; white-space: nowrap; }
+      .prob-grid, .two-col { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .market-grid { grid-template-columns: repeat(2, 1fr); }
+      .match-head { align-items: flex-start; }
+      .chart { height: 230px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="overviewScreen" class="screen">
+      <div class="topbar">
+        <div>
+          <h1>赛事总览</h1>
+          <p>先选届别，再看比赛列表，点进每场比赛看赔率、波胆和让球水位。</p>
+        </div>
+        <span class="pill blue" id="topbarPill">回测原型</span>
+      </div>
+
+      <div id="tournamentBar"></div>
+      <div id="crossTournamentDashboard"></div>
+      <div id="dataHealth"></div>
+
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <div class="board" id="priorityBoard"></div>
+
+      <div id="backtestDashboard"></div>
+
+      <div class="toolbar">
+        <select id="stageFilter">
+          <option value="全部">全部阶段</option>
+          <option value="小组赛">小组赛</option>
+          <option value="淘汰赛">淘汰赛</option>
+          <option value="决赛">决赛</option>
+        </select>
+      </div>
+
+      <div class="topbar">
+        <div>
+          <h2>全部比赛</h2>
+          <p>列表保持紧凑，详细分析点进去看。</p>
+        </div>
+        <span class="pill" id="matchTotal"></span>
+      </div>
+      <div class="matches" id="matches"></div>
+    </section>
+
+    <section id="detailScreen" class="screen hidden">
+      <div class="topbar">
+        <button class="ghost" onclick="goBack()">← 返回赛事总览</button>
+        <span class="pill warn">模拟采集数据</span>
+      </div>
+      <div id="detailTitle"></div>
+      <div class="tabs">
+        <button id="tabOverview" onclick="setTab('overview')">概览</button>
+        <button id="tabRiskScore" onclick="setTab('riskScore')">评分</button>
+        <button id="tabScoreOdds" onclick="setTab('scoreOdds')">波胆</button>
+        <button id="tabHandicap" onclick="setTab('handicap')">让球</button>
+        <button id="tabCollect" onclick="setTab('collect')">采集</button>
+      </div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script>
+/* 内嵌文件：data/tournaments.js */
+// 赛事注册表（届别选择的数据源）
+// 后期增加新届/新联赛只需要：
+//   1. 新建一个数据文件（如 data/matches-euro2024.js），导出 window.MATCHES_EURO2024
+//   2. 在 index.html 加一行 <script src="..."> 引用
+//   3. 在下面的 TOURNAMENTS 数组里追加一项
+// 评分引擎、UI、配置都不需要改，保证后期可维护性。
+//
+// 字段说明：
+//   id         唯一标识，用于 localStorage 记忆用户选择
+//   name       完整名字（详情页用）
+//   short      列表/下拉框展示的短名
+//   year       年份（用于排序）
+//   type       赛事类型：worldcup / euro / club / league
+//   status     已结束 / 进行中 / 未开始
+//   dataKey    实际数据挂载到 window 的变量名
+//   description 选择该赛事时的引导说明
+window.TOURNAMENTS = [
+  {
+    id: "wc2026",
+    name: "2026 美加墨世界杯",
+    short: "2026 世界杯",
+    year: 2026,
+    type: "worldcup",
+    status: "未开始",
+    dataKey: "MATCHES_2026",
+    description: "项目最终目标。等抽签和盘口数据就绪后，切到这里就能用同一套分析流程。"
+  },
+  {
+    id: "wc2022",
+    name: "2022 卡塔尔世界杯",
+    short: "2022 世界杯",
+    year: 2022,
+    type: "worldcup",
+    status: "已结束",
+    dataKey: "MATCHES_2022",
+    description: "用于回测的历史数据。先在这里把分析方法跑通，命中和失手都能看见。"
+  },
+  {
+    id: "wc2018",
+    name: "2018 俄罗斯世界杯",
+    short: "2018 世界杯",
+    year: 2018,
+    type: "worldcup",
+    status: "已结束",
+    dataKey: "MATCHES_2018",
+    description: "再加一届世界杯做交叉验证，看看同一套分析方法在不同年份是不是都说得通。"
+  }
+];
+
+// 默认选中的赛事（首次访问时用）
+window.DEFAULT_TOURNAMENT_ID = "wc2022";
+
+  </script>
+  <script>
+/* 内嵌文件：data/matches-2018.js */
+// 2018 俄罗斯世界杯历史回测样本数据（模拟数据）
+// 字段结构与 matches-2022.js 完全一致，保证评分引擎不需要改。
+window.MATCHES_2018 = [
+  {
+    id: 101,
+    date: "2018-06-27",
+    stage: "小组赛",
+    home: "韩国",
+    away: "德国",
+    actual: "2:0",
+    finalScore: "2:0",
+    predict: "德国胜",
+    confidence: 70,
+    resultCorrect: false,
+    probs: { home: 12, draw: 22, away: 66 },
+    goals: [["0-1球", 20], ["2-3球", 55], ["4球以上", 25]],
+    scoreOdds: {
+      "0:1": [6.6, 6.4, 6.2, 6.0, 5.9],
+      "0:2": [6.8, 6.6, 6.3, 6.1, 5.9],
+      "1:2": [7.4, 7.2, 6.9, 6.7, 6.5],
+      "1:1": [9.0, 8.8, 8.6, 8.4, 8.2],
+      "2:0": [22, 21, 19, 17, 14]
+    },
+    scoreProb: [["0:2", 16], ["0:1", 14], ["1:2", 12], ["1:1", 10], ["2:0", 4]],
+    handicap: {
+      line: "德国 -1.5",
+      timeline: [
+        { time: "初盘",  line: "德国 -1.25", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-24h", line: "德国 -1.25", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-6h",  line: "德国 -1.5",  homeWater: 0.86, awayWater: 1.02 },
+        { time: "T-1h",  line: "德国 -1.5",  homeWater: 0.82, awayWater: 1.07 },
+        { time: "临场",  line: "德国 -1.5",  homeWater: 0.78, awayWater: 1.13 }
+      ],
+      homeWater: [0.94, 0.92, 0.86, 0.82, 0.78],
+      awayWater: [0.94, 0.96, 1.02, 1.07, 1.13],
+      signal: "盘口持续升盘，上盘水位深降，市场过度看好德国大胜，是典型的“热门过热”信号。"
+    },
+    news: ["德国小组赛积分压力大", "韩国体能和拼抢意愿强"]
+  },
+  {
+    id: 102,
+    date: "2018-07-01",
+    stage: "淘汰赛",
+    home: "西班牙",
+    away: "俄罗斯",
+    actual: "1:1",
+    finalScore: "1:1 (点球 3:4，俄罗斯晋级)",
+    predict: "西班牙不败",
+    confidence: 60,
+    resultCorrect: true,
+    probs: { home: 58, draw: 27, away: 15 },
+    goals: [["0-1球", 32], ["2-3球", 50], ["4球以上", 18]],
+    scoreOdds: {
+      "1:0": [6.4, 6.3, 6.1, 5.9, 5.8],
+      "2:0": [7.2, 7.1, 6.9, 6.7, 6.5],
+      "1:1": [7.0, 6.8, 6.6, 6.4, 6.2],
+      "2:1": [8.2, 8.0, 7.7, 7.4, 7.1],
+      "0:0": [10, 9.6, 9.2, 8.8, 8.4]
+    },
+    scoreProb: [["1:0", 14], ["2:0", 11], ["1:1", 13], ["2:1", 9], ["0:0", 8]],
+    handicap: {
+      line: "西班牙 -0.75",
+      timeline: [
+        { time: "初盘",  line: "西班牙 -1",    homeWater: 0.96, awayWater: 0.92 },
+        { time: "T-24h", line: "西班牙 -1",    homeWater: 0.98, awayWater: 0.90 },
+        { time: "T-6h",  line: "西班牙 -0.75", homeWater: 0.86, awayWater: 1.02 },
+        { time: "T-1h",  line: "西班牙 -0.75", homeWater: 0.84, awayWater: 1.04 },
+        { time: "临场",  line: "西班牙 -0.75", homeWater: 0.82, awayWater: 1.06 }
+      ],
+      homeWater: [0.96, 0.98, 0.86, 0.84, 0.82],
+      awayWater: [0.92, 0.90, 1.02, 1.04, 1.06],
+      signal: "盘口从 -1 退到 -0.75，是典型的“退盘+上盘降水”，机构对西班牙赢球缺乏信心，平局/小胜风险加大。"
+    },
+    news: ["西班牙赛前换帅余波未平", "俄罗斯主场气势强但对抗硬度不足"]
+  },
+  {
+    id: 103,
+    date: "2018-07-15",
+    stage: "决赛",
+    home: "法国",
+    away: "克罗地亚",
+    actual: "4:2",
+    finalScore: "4:2",
+    predict: "法国胜",
+    confidence: 64,
+    resultCorrect: true,
+    probs: { home: 56, draw: 26, away: 18 },
+    goals: [["0-1球", 18], ["2-3球", 50], ["4球以上", 32]],
+    scoreOdds: {
+      "1:0": [7.2, 7.0, 6.8, 6.6, 6.4],
+      "2:1": [7.8, 7.6, 7.3, 7.0, 6.7],
+      "2:0": [7.6, 7.4, 7.1, 6.9, 6.7],
+      "1:1": [9.0, 8.8, 8.6, 8.4, 8.2],
+      "3:1": [12, 11.6, 11.0, 10.4, 9.8]
+    },
+    scoreProb: [["2:1", 13], ["1:0", 12], ["2:0", 11], ["1:1", 10], ["3:1", 7]],
+    handicap: {
+      line: "法国 -0.5",
+      timeline: [
+        { time: "初盘",  line: "法国 -0.5", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-24h", line: "法国 -0.5", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-6h",  line: "法国 -0.5", homeWater: 0.88, awayWater: 1.00 },
+        { time: "T-1h",  line: "法国 -0.5", homeWater: 0.86, awayWater: 1.02 },
+        { time: "临场",  line: "法国 -0.5", homeWater: 0.84, awayWater: 1.04 }
+      ],
+      homeWater: [0.92, 0.90, 0.88, 0.86, 0.84],
+      awayWater: [0.96, 0.98, 1.00, 1.02, 1.04],
+      signal: "盘口稳定不动，上盘水位平稳下降，趋势一致：机构和市场都偏向法国，但优势没有过度放大。"
+    },
+    news: ["法国阵容齐整", "克罗地亚连续加时体能透支"]
+  },
+  {
+    id: 104,
+    date: "2018-06-30",
+    stage: "淘汰赛",
+    home: "法国",
+    away: "阿根廷",
+    actual: "4:3",
+    finalScore: "4:3",
+    predict: "法国不败",
+    confidence: 58,
+    resultCorrect: true,
+    probs: { home: 43, draw: 29, away: 28 },
+    goals: [["0-1球", 24], ["2-3球", 51], ["4球以上", 25]],
+    scoreOdds: {
+      "1:1": [6.6, 6.4, 6.2, 6.0, 5.8],
+      "2:1": [8.2, 8.0, 7.6, 7.2, 6.9],
+      "1:2": [9.2, 9.0, 8.6, 8.2, 7.8],
+      "2:2": [17, 16.2, 15.4, 14.5, 13.6],
+      "3:2": [23, 21.5, 19.5, 17.5, 15.5]
+    },
+    scoreProb: [["1:1", 14], ["2:1", 12], ["1:2", 10], ["2:2", 8], ["3:2", 5]],
+    handicap: {
+      line: "法国 -0.25",
+      timeline: [
+        { time: "初盘", line: "法国 -0.25", homeWater: 0.96, awayWater: 0.92 },
+        { time: "T-24h", line: "法国 -0.25", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-6h", line: "法国 -0.25", homeWater: 0.91, awayWater: 0.97 },
+        { time: "T-1h", line: "法国 -0.25", homeWater: 0.88, awayWater: 1.00 },
+        { time: "临场", line: "法国 -0.25", homeWater: 0.85, awayWater: 1.04 }
+      ],
+      homeWater: [0.96, 0.94, 0.91, 0.88, 0.85],
+      awayWater: [0.92, 0.94, 0.97, 1.00, 1.04],
+      signal: "浅盘下法国方向持续降水，说明机构更偏向法国不败，但双方进攻爆点多，大比分风险被低估。"
+    },
+    news: ["法国速度冲击力强", "阿根廷防线转换速度偏慢但前场个人能力强"]
+  },
+  {
+    id: 105,
+    date: "2018-07-06",
+    stage: "淘汰赛",
+    home: "巴西",
+    away: "比利时",
+    actual: "1:2",
+    finalScore: "1:2",
+    predict: "巴西胜",
+    confidence: 61,
+    resultCorrect: false,
+    probs: { home: 50, draw: 27, away: 23 },
+    goals: [["0-1球", 27], ["2-3球", 52], ["4球以上", 21]],
+    scoreOdds: {
+      "1:0": [6.4, 6.5, 6.7, 6.9, 7.1],
+      "2:1": [8.0, 8.0, 8.1, 8.3, 8.5],
+      "1:1": [6.8, 6.6, 6.3, 6.0, 5.7],
+      "1:2": [12, 11.2, 10.3, 9.4, 8.5],
+      "0:1": [10.5, 10.0, 9.4, 8.8, 8.2]
+    },
+    scoreProb: [["1:0", 13], ["2:1", 12], ["1:1", 12], ["1:2", 8], ["0:1", 7]],
+    handicap: {
+      line: "巴西 -0.5",
+      timeline: [
+        { time: "初盘", line: "巴西 -0.5", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-24h", line: "巴西 -0.5", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-6h", line: "巴西 -0.5", homeWater: 0.96, awayWater: 0.92 },
+        { time: "T-1h", line: "巴西 -0.5", homeWater: 0.99, awayWater: 0.89 },
+        { time: "临场", line: "巴西 -0.5", homeWater: 1.02, awayWater: 0.86 }
+      ],
+      homeWater: [0.90, 0.92, 0.96, 0.99, 1.02],
+      awayWater: [0.98, 0.96, 0.92, 0.89, 0.86],
+      signal: "盘口维持巴西 -0.5，但巴西方向水位持续升高，比利时方向持续降水，是热门方向变得不舒服的典型样本。"
+    },
+    news: ["巴西个人能力强但边路身后空间大", "比利时反击和前场转换效率高"]
+  },
+  {
+    id: 106,
+    date: "2018-07-11",
+    stage: "淘汰赛",
+    home: "克罗地亚",
+    away: "英格兰",
+    actual: "1:1",
+    finalScore: "1:1 (加时 2:1，克罗地亚晋级)",
+    predict: "英格兰不败",
+    confidence: 53,
+    resultCorrect: true,
+    probs: { home: 30, draw: 31, away: 39 },
+    goals: [["0-1球", 30], ["2-3球", 52], ["4球以上", 18]],
+    scoreOdds: {
+      "0:1": [7.8, 7.6, 7.3, 7.0, 6.8],
+      "1:1": [6.4, 6.2, 5.9, 5.6, 5.4],
+      "1:2": [9.5, 9.1, 8.6, 8.1, 7.8],
+      "0:0": [8.8, 8.4, 8.0, 7.7, 7.4],
+      "2:1": [11.5, 11.0, 10.2, 9.6, 9.0]
+    },
+    scoreProb: [["1:1", 15], ["0:1", 11], ["0:0", 9], ["1:2", 9], ["2:1", 8]],
+    handicap: {
+      line: "英格兰 -0.25",
+      timeline: [
+        { time: "初盘", line: "英格兰 -0.25", homeWater: 1.00, awayWater: 0.88 },
+        { time: "T-24h", line: "英格兰 -0.25", homeWater: 0.98, awayWater: 0.90 },
+        { time: "T-6h", line: "英格兰 -0.25", homeWater: 0.96, awayWater: 0.92 },
+        { time: "T-1h", line: "英格兰 -0.25", homeWater: 0.94, awayWater: 0.94 },
+        { time: "临场", line: "英格兰 -0.25", homeWater: 0.92, awayWater: 0.96 }
+      ],
+      homeWater: [1.00, 0.98, 0.96, 0.94, 0.92],
+      awayWater: [0.88, 0.90, 0.92, 0.94, 0.96],
+      signal: "英格兰浅让但水位优势逐步被抹平，淘汰赛半决赛平局和加时风险较高。"
+    },
+    news: ["克罗地亚中场抗压能力强", "英格兰定位球威胁大但运动战创造力有限"]
+  },
+  {
+    id: 107,
+    date: "2018-07-02",
+    stage: "淘汰赛",
+    home: "巴西",
+    away: "墨西哥",
+    actual: "2:0",
+    finalScore: "2:0",
+    predict: "巴西胜",
+    confidence: 67,
+    resultCorrect: true,
+    probs: { home: 62, draw: 24, away: 14 },
+    goals: [["0-1球", 24], ["2-3球", 54], ["4球以上", 22]],
+    scoreOdds: {
+      "1:0": [6.2, 6.0, 5.8, 5.6, 5.4],
+      "2:0": [7.2, 6.9, 6.6, 6.2, 5.9],
+      "2:1": [8.4, 8.1, 7.8, 7.4, 7.1],
+      "1:1": [8.8, 8.7, 8.5, 8.3, 8.1],
+      "3:0": [12.5, 12.0, 11.2, 10.5, 9.8]
+    },
+    scoreProb: [["2:0", 15], ["1:0", 13], ["2:1", 10], ["3:0", 8], ["1:1", 7]],
+    handicap: {
+      line: "巴西 -1",
+      timeline: [
+        { time: "初盘", line: "巴西 -0.75", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-24h", line: "巴西 -0.75", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-6h", line: "巴西 -1", homeWater: 0.88, awayWater: 1.00 },
+        { time: "T-1h", line: "巴西 -1", homeWater: 0.85, awayWater: 1.04 },
+        { time: "临场", line: "巴西 -1", homeWater: 0.82, awayWater: 1.08 }
+      ],
+      homeWater: [0.94, 0.90, 0.88, 0.85, 0.82],
+      awayWater: [0.94, 0.98, 1.00, 1.04, 1.08],
+      signal: "盘口从 -0.75 升到 -1，巴西方向持续降水，波胆也集中在小胜和两球胜，是强队优势较清晰的样本。"
+    },
+    news: ["巴西攻防转换稳定", "墨西哥反击有威胁但终结效率不足"]
+  }
+];
+
+  </script>
+  <script>
+/* 内嵌文件：data/matches-2022.js */
+// 2022 卡塔尔世界杯历史回测数据（模拟数据，用于第一版原型）
+// 字段说明：
+//   actual: 博彩公司结算比分（90 分钟常规时间）
+//   finalScore: 最终结果（含加时和点球）
+//   probs: 模型胜平负概率（赛前快照）
+//   goals: 进球数概率分布
+//   scoreOdds: 关键波胆赔率随时间变化（5 个时点）
+//   scoreProb: 模型估计的高频比分概率
+//   handicap: 让球盘口与上下盘水位
+//   handicap.timeline: 盘口随时间变化轨迹，后期接真实数据时重点维护
+//   news: 与该场比赛相关的简要消息
+window.MATCHES_2022 = [
+  {
+    id: 1,
+    date: "2022-11-22",
+    stage: "小组赛",
+    home: "阿根廷",
+    away: "沙特",
+    actual: "1:2",
+    finalScore: "1:2",
+    predict: "阿根廷胜",
+    confidence: 72,
+    resultCorrect: false,
+    probs: { home: 68, draw: 20, away: 12 },
+    goals: [["0-1球", 18], ["2-3球", 57], ["4球以上", 25]],
+    scoreOdds: {
+      "1:0": [6.9, 6.7, 6.4, 6.2, 6.0],
+      "2:0": [6.8, 6.6, 6.2, 6.0, 5.8],
+      "2:1": [7.2, 7.0, 6.6, 6.4, 6.1],
+      "1:1": [10.5, 10.2, 9.8, 9.4, 9.0],
+      "0:1": [23, 21, 19, 17, 15]
+    },
+    scoreProb: [["2:0", 16], ["2:1", 14], ["1:0", 13], ["1:1", 11], ["0:1", 5]],
+    handicap: {
+      line: "阿根廷 -1.5",
+      timeline: [
+        { time: "初盘", line: "阿根廷 -1.25", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-24h", line: "阿根廷 -1.25", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-6h", line: "阿根廷 -1.5", homeWater: 0.87, awayWater: 1.01 },
+        { time: "T-1h", line: "阿根廷 -1.5", homeWater: 0.84, awayWater: 1.05 },
+        { time: "临场", line: "阿根廷 -1.5", homeWater: 0.80, awayWater: 1.10 }
+      ],
+      homeWater: [0.92, 0.90, 0.87, 0.84, 0.80],
+      awayWater: [0.96, 0.98, 1.01, 1.05, 1.10],
+      signal: "上盘水位持续下降，说明市场更愿意压阿根廷赢2球以上；但真实结果爆冷，说明强热门也要看冷门风险。"
+    },
+    news: ["阿根廷赛前热度过高", "沙特防守反击被模型低估"]
+  },
+  {
+    id: 2,
+    date: "2022-11-21",
+    stage: "小组赛",
+    home: "英格兰",
+    away: "伊朗",
+    actual: "6:2",
+    finalScore: "6:2",
+    predict: "英格兰胜",
+    confidence: 69,
+    resultCorrect: true,
+    probs: { home: 64, draw: 23, away: 13 },
+    goals: [["0-1球", 22], ["2-3球", 53], ["4球以上", 25]],
+    scoreOdds: {
+      "1:0": [6.5, 6.3, 6.1, 5.9, 5.8],
+      "2:0": [7.4, 7.1, 6.9, 6.6, 6.4],
+      "2:1": [8.1, 7.8, 7.5, 7.1, 6.9],
+      "3:1": [13, 12.5, 11.8, 10.8, 9.8],
+      "1:1": [9.5, 9.4, 9.2, 9.0, 8.9]
+    },
+    scoreProb: [["2:0", 15], ["2:1", 13], ["1:0", 12], ["3:1", 9], ["1:1", 8]],
+    handicap: {
+      line: "英格兰 -1",
+      timeline: [
+        { time: "初盘", line: "英格兰 -0.75", homeWater: 0.98, awayWater: 0.88 },
+        { time: "T-24h", line: "英格兰 -1", homeWater: 0.95, awayWater: 0.91 },
+        { time: "T-6h", line: "英格兰 -1", homeWater: 0.92, awayWater: 0.94 },
+        { time: "T-1h", line: "英格兰 -1", homeWater: 0.88, awayWater: 0.99 },
+        { time: "临场", line: "英格兰 -1", homeWater: 0.83, awayWater: 1.06 }
+      ],
+      homeWater: [0.98, 0.95, 0.92, 0.88, 0.83],
+      awayWater: [0.88, 0.91, 0.94, 0.99, 1.06],
+      signal: "让球方向和进球方向同时支持英格兰，属于趋势比较一致的比赛。"
+    },
+    news: ["英格兰锋线状态稳定", "伊朗防线承压明显"]
+  },
+  {
+    id: 3,
+    date: "2022-11-23",
+    stage: "小组赛",
+    home: "德国",
+    away: "日本",
+    actual: "1:2",
+    finalScore: "1:2",
+    predict: "德国胜",
+    confidence: 63,
+    resultCorrect: false,
+    probs: { home: 58, draw: 25, away: 17 },
+    goals: [["0-1球", 24], ["2-3球", 56], ["4球以上", 20]],
+    scoreOdds: {
+      "1:0": [6.8, 6.6, 6.4, 6.3, 6.1],
+      "2:1": [7.6, 7.4, 7.1, 6.9, 6.7],
+      "2:0": [7.2, 7.0, 6.8, 6.7, 6.6],
+      "1:1": [8.8, 8.7, 8.5, 8.2, 7.9],
+      "1:2": [18, 17, 15.5, 13.5, 11.8]
+    },
+    scoreProb: [["2:1", 14], ["1:0", 12], ["1:1", 12], ["2:0", 10], ["1:2", 6]],
+    handicap: {
+      line: "德国 -1",
+      timeline: [
+        { time: "初盘", line: "德国 -1", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-24h", line: "德国 -1", homeWater: 0.88, awayWater: 1.00 },
+        { time: "T-6h", line: "德国 -1.25", homeWater: 0.87, awayWater: 1.02 },
+        { time: "T-1h", line: "德国 -1", homeWater: 0.91, awayWater: 0.98 },
+        { time: "临场", line: "德国 -1", homeWater: 0.96, awayWater: 0.92 }
+      ],
+      homeWater: [0.90, 0.88, 0.87, 0.91, 0.96],
+      awayWater: [0.98, 1.00, 1.02, 0.98, 0.92],
+      signal: "临近开赛上盘水位反而抬高，下盘水位下降，这是热门不稳的信号。"
+    },
+    news: ["德国控球强但效率不稳", "日本反击速度快"]
+  },
+  {
+    id: 4,
+    date: "2022-12-09",
+    stage: "淘汰赛",
+    home: "荷兰",
+    away: "阿根廷",
+    actual: "2:2",
+    finalScore: "2:2 (点球 3:4，阿根廷晋级)",
+    predict: "阿根廷不败",
+    confidence: 55,
+    resultCorrect: true,
+    probs: { home: 30, draw: 31, away: 39 },
+    goals: [["0-1球", 31], ["2-3球", 48], ["4球以上", 21]],
+    scoreOdds: {
+      "0:0": [8.5, 8.2, 7.9, 7.6, 7.4],
+      "1:1": [6.1, 5.9, 5.6, 5.4, 5.2],
+      "0:1": [8.0, 7.8, 7.6, 7.5, 7.3],
+      "1:2": [8.8, 8.5, 8.2, 7.8, 7.5],
+      "2:2": [18, 17, 16, 15, 13.5]
+    },
+    scoreProb: [["1:1", 15], ["0:1", 11], ["1:2", 10], ["0:0", 9], ["2:2", 7]],
+    handicap: {
+      line: "阿根廷 -0.25",
+      timeline: [
+        { time: "初盘", line: "阿根廷 -0.25", homeWater: 1.02, awayWater: 0.86 },
+        { time: "T-24h", line: "阿根廷 -0.25", homeWater: 1.00, awayWater: 0.88 },
+        { time: "T-6h", line: "阿根廷 -0.25", homeWater: 0.98, awayWater: 0.90 },
+        { time: "T-1h", line: "阿根廷 -0.25", homeWater: 0.97, awayWater: 0.92 },
+        { time: "临场", line: "阿根廷 -0.25", homeWater: 0.95, awayWater: 0.94 }
+      ],
+      homeWater: [1.02, 1.00, 0.98, 0.97, 0.95],
+      awayWater: [0.86, 0.88, 0.90, 0.92, 0.94],
+      signal: "浅盘说明双方接近，平局和小比分要重点观察。"
+    },
+    news: ["淘汰赛心态谨慎", "阿根廷关键球能力更强"]
+  },
+  {
+    id: 5,
+    date: "2022-12-18",
+    stage: "决赛",
+    home: "阿根廷",
+    away: "法国",
+    actual: "3:3",
+    finalScore: "3:3 (点球 4:2，阿根廷夺冠)",
+    predict: "阿根廷不败",
+    confidence: 52,
+    resultCorrect: true,
+    probs: { home: 36, draw: 30, away: 34 },
+    goals: [["0-1球", 29], ["2-3球", 50], ["4球以上", 21]],
+    scoreOdds: {
+      "0:0": [9.2, 8.8, 8.4, 8.0, 7.8],
+      "1:1": [6.3, 6.0, 5.8, 5.5, 5.2],
+      "2:1": [9.2, 8.8, 8.5, 8.0, 7.7],
+      "1:2": [9.0, 8.7, 8.3, 7.9, 7.6],
+      "2:2": [17, 16, 15.5, 14.5, 13.8]
+    },
+    scoreProb: [["1:1", 13], ["2:1", 10], ["1:2", 10], ["0:0", 8], ["2:2", 8]],
+    handicap: {
+      line: "阿根廷 0",
+      timeline: [
+        { time: "初盘", line: "阿根廷 0", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-24h", line: "阿根廷 0", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-6h", line: "阿根廷 0", homeWater: 0.91, awayWater: 0.97 },
+        { time: "T-1h", line: "阿根廷 0", homeWater: 0.90, awayWater: 0.98 },
+        { time: "临场", line: "阿根廷 0", homeWater: 0.88, awayWater: 1.00 }
+      ],
+      homeWater: [0.94, 0.92, 0.91, 0.90, 0.88],
+      awayWater: [0.94, 0.96, 0.97, 0.98, 1.00],
+      signal: "平手盘说明实力非常接近，重点不是谁一定赢，而是观察平局和加时风险。"
+    },
+    news: ["双方实力接近", "法国进攻爆点多"]
+  },
+  {
+    id: 6,
+    date: "2022-11-23",
+    stage: "小组赛",
+    home: "西班牙",
+    away: "哥斯达黎加",
+    actual: "7:0",
+    finalScore: "7:0",
+    predict: "西班牙胜",
+    confidence: 76,
+    resultCorrect: true,
+    probs: { home: 72, draw: 18, away: 10 },
+    goals: [["0-1球", 16], ["2-3球", 52], ["4球以上", 32]],
+    scoreOdds: {
+      "1:0": [5.8, 5.7, 5.6, 5.4, 5.2],
+      "2:0": [6.2, 6.0, 5.8, 5.5, 5.2],
+      "3:0": [8.8, 8.4, 7.9, 7.3, 6.8],
+      "2:1": [8.5, 8.4, 8.2, 8.0, 7.8],
+      "4:0": [15, 14, 13, 11.5, 10.2]
+    },
+    scoreProb: [["2:0", 16], ["3:0", 12], ["1:0", 11], ["2:1", 9], ["4:0", 6]],
+    handicap: {
+      line: "西班牙 -1.5",
+      timeline: [
+        { time: "初盘", line: "西班牙 -1.25", homeWater: 0.92, awayWater: 0.96 },
+        { time: "T-24h", line: "西班牙 -1.25", homeWater: 0.88, awayWater: 1.00 },
+        { time: "T-6h", line: "西班牙 -1.5", homeWater: 0.86, awayWater: 1.03 },
+        { time: "T-1h", line: "西班牙 -1.5", homeWater: 0.83, awayWater: 1.07 },
+        { time: "临场", line: "西班牙 -1.5", homeWater: 0.80, awayWater: 1.12 }
+      ],
+      homeWater: [0.92, 0.88, 0.86, 0.83, 0.80],
+      awayWater: [0.96, 1.00, 1.03, 1.07, 1.12],
+      signal: "盘口升深且上盘持续降水，热门方向和大胜波胆同步走强，是强队真实压制的样本。"
+    },
+    news: ["西班牙控球体系成熟", "哥斯达黎加防线速度和出球压力偏大"]
+  },
+  {
+    id: 7,
+    date: "2022-11-27",
+    stage: "小组赛",
+    home: "比利时",
+    away: "摩洛哥",
+    actual: "0:2",
+    finalScore: "0:2",
+    predict: "比利时不败",
+    confidence: 58,
+    resultCorrect: false,
+    probs: { home: 48, draw: 30, away: 22 },
+    goals: [["0-1球", 30], ["2-3球", 51], ["4球以上", 19]],
+    scoreOdds: {
+      "1:0": [6.8, 6.9, 7.1, 7.3, 7.5],
+      "1:1": [6.6, 6.4, 6.1, 5.8, 5.5],
+      "2:1": [8.6, 8.7, 8.8, 9.0, 9.2],
+      "0:1": [11, 10.2, 9.4, 8.6, 7.8],
+      "0:2": [23, 21, 18.5, 16, 13.8]
+    },
+    scoreProb: [["1:1", 15], ["1:0", 12], ["0:1", 10], ["2:1", 8], ["0:2", 5]],
+    handicap: {
+      line: "比利时 -0.25",
+      timeline: [
+        { time: "初盘", line: "比利时 -0.5", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-24h", line: "比利时 -0.5", homeWater: 0.99, awayWater: 0.89 },
+        { time: "T-6h", line: "比利时 -0.25", homeWater: 0.88, awayWater: 1.02 },
+        { time: "T-1h", line: "比利时 -0.25", homeWater: 0.92, awayWater: 0.98 },
+        { time: "临场", line: "比利时 -0.25", homeWater: 0.98, awayWater: 0.92 }
+      ],
+      homeWater: [0.94, 0.99, 0.88, 0.92, 0.98],
+      awayWater: [0.94, 0.89, 1.02, 0.98, 0.92],
+      signal: "盘口从 -0.5 退到 -0.25，临场比利时方向升水，摩洛哥方向水位下降，是热门不稳和下盘升温的样本。"
+    },
+    news: ["比利时阵容老化和节奏偏慢", "摩洛哥防守组织和反击质量较高"]
+  },
+  {
+    id: 8,
+    date: "2022-12-09",
+    stage: "淘汰赛",
+    home: "克罗地亚",
+    away: "巴西",
+    actual: "1:1",
+    finalScore: "1:1 (点球 4:2，克罗地亚晋级)",
+    predict: "巴西胜",
+    confidence: 66,
+    resultCorrect: false,
+    probs: { home: 18, draw: 28, away: 54 },
+    goals: [["0-1球", 28], ["2-3球", 52], ["4球以上", 20]],
+    scoreOdds: {
+      "0:1": [6.8, 6.6, 6.4, 6.2, 6.0],
+      "0:2": [7.6, 7.4, 7.2, 7.0, 6.8],
+      "1:1": [7.4, 7.1, 6.7, 6.2, 5.8],
+      "1:2": [8.4, 8.2, 7.9, 7.5, 7.2],
+      "0:0": [10, 9.6, 9.2, 8.8, 8.4]
+    },
+    scoreProb: [["0:1", 14], ["1:1", 13], ["0:2", 11], ["1:2", 9], ["0:0", 8]],
+    handicap: {
+      line: "巴西 -1",
+      timeline: [
+        { time: "初盘", line: "巴西 -1", homeWater: 0.96, awayWater: 0.92 },
+        { time: "T-24h", line: "巴西 -1", homeWater: 0.98, awayWater: 0.90 },
+        { time: "T-6h", line: "巴西 -1", homeWater: 1.00, awayWater: 0.88 },
+        { time: "T-1h", line: "巴西 -1", homeWater: 1.02, awayWater: 0.86 },
+        { time: "临场", line: "巴西 -1", homeWater: 1.04, awayWater: 0.84 }
+      ],
+      homeWater: [0.96, 0.98, 1.00, 1.02, 1.04],
+      awayWater: [0.92, 0.90, 0.88, 0.86, 0.84],
+      signal: "盘口维持巴西 -1，但巴西方向水位压力不够顺，下盘持续降水，淘汰赛平局风险被放大。"
+    },
+    news: ["克罗地亚中场控制和加时经验强", "巴西个人能力强但淘汰赛容错率低"]
+  },
+  {
+    id: 9,
+    date: "2022-12-06",
+    stage: "淘汰赛",
+    home: "葡萄牙",
+    away: "瑞士",
+    actual: "6:1",
+    finalScore: "6:1",
+    predict: "葡萄牙胜",
+    confidence: 62,
+    resultCorrect: true,
+    probs: { home: 52, draw: 27, away: 21 },
+    goals: [["0-1球", 26], ["2-3球", 50], ["4球以上", 24]],
+    scoreOdds: {
+      "1:0": [6.6, 6.5, 6.3, 6.1, 5.9],
+      "2:0": [8.0, 7.8, 7.5, 7.1, 6.7],
+      "2:1": [8.2, 8.0, 7.7, 7.3, 7.0],
+      "3:1": [14, 13.2, 12.2, 11.0, 9.8],
+      "1:1": [7.2, 7.0, 6.8, 6.6, 6.4]
+    },
+    scoreProb: [["2:1", 13], ["1:0", 12], ["2:0", 10], ["1:1", 10], ["3:1", 7]],
+    handicap: {
+      line: "葡萄牙 -0.5",
+      timeline: [
+        { time: "初盘", line: "葡萄牙 -0.25", homeWater: 0.94, awayWater: 0.94 },
+        { time: "T-24h", line: "葡萄牙 -0.25", homeWater: 0.90, awayWater: 0.98 },
+        { time: "T-6h", line: "葡萄牙 -0.5", homeWater: 0.88, awayWater: 1.00 },
+        { time: "T-1h", line: "葡萄牙 -0.5", homeWater: 0.84, awayWater: 1.05 },
+        { time: "临场", line: "葡萄牙 -0.5", homeWater: 0.80, awayWater: 1.10 }
+      ],
+      homeWater: [0.94, 0.90, 0.88, 0.84, 0.80],
+      awayWater: [0.94, 0.98, 1.00, 1.05, 1.10],
+      signal: "盘口从 -0.25 升到 -0.5，葡萄牙方向持续降水，临场攻击端变化后大胜信号增强。"
+    },
+    news: ["葡萄牙首发调整释放进攻速度", "瑞士防线被高强度冲击打穿"]
+  }
+];
+
+  </script>
+  <script>
+/* 内嵌文件：data/matches-2026.js */
+// 2026 美加墨世界杯数据占位
+// 抽签和盘口数据出来后，按 matches-2022.js 的字段结构填充即可。
+// 评分引擎无需改动，UI 会自动按这个数据渲染分析。
+window.MATCHES_2026 = [];
+
+// 2026 单场比赛录入模板
+// 后期新增比赛时，复制下面这个对象，填入 MATCHES_2026 数组即可。
+// 注意：actual 和 finalScore 是赛后字段，赛前可以先留空。
+window.MATCH_2026_TEMPLATE = {
+  id: 26001,
+  date: "2026-06-11",
+  stage: "小组赛",
+  home: "主队名称",
+  away: "客队名称",
+  actual: "",
+  finalScore: "",
+  predict: "赛前方向，例如 主队不败 / 客队方向 / 等临场确认",
+  confidence: 0,
+  resultCorrect: false,
+  probs: { home: 0, draw: 0, away: 0 },
+  goals: [["0-1球", 0], ["2-3球", 0], ["4球以上", 0]],
+  scoreOdds: {
+    "0:0": [0, 0, 0, 0, 0],
+    "1:0": [0, 0, 0, 0, 0],
+    "1:1": [0, 0, 0, 0, 0],
+    "2:1": [0, 0, 0, 0, 0],
+    "0:1": [0, 0, 0, 0, 0]
+  },
+  scoreProb: [["1:0", 0], ["1:1", 0], ["2:1", 0], ["0:1", 0], ["0:0", 0]],
+  handicap: {
+    line: "主队 -0.25",
+    timeline: [
+      { time: "初盘", line: "主队 -0.25", homeWater: 0.94, awayWater: 0.94 },
+      { time: "T-24h", line: "主队 -0.25", homeWater: 0.94, awayWater: 0.94 },
+      { time: "T-6h", line: "主队 -0.25", homeWater: 0.94, awayWater: 0.94 },
+      { time: "T-1h", line: "主队 -0.25", homeWater: 0.94, awayWater: 0.94 },
+      { time: "临场", line: "主队 -0.25", homeWater: 0.94, awayWater: 0.94 }
+    ],
+    homeWater: [0.94, 0.94, 0.94, 0.94, 0.94],
+    awayWater: [0.94, 0.94, 0.94, 0.94, 0.94],
+    signal: "填写盘口变化的人工备注，例如：主队降水但未升盘，暂时偏谨慎。"
+  },
+  news: ["伤停/首发/天气/赛程消息"]
+};
+
+  </script>
+  <script>
+/* 内嵌文件：engine/config.js */
+// 风控评分配置
+// 后期如果要调评分权重、阈值、波胆范围，优先改这个文件，不要直接改页面。
+window.SCORING_CONFIG = {
+  scoreRange: {
+    maxCorrectScore: 5
+  },
+  riskThresholds: {
+    focus: 72,
+    wait: 55
+  },
+  weights: {
+    handicapChange: 22,
+    waterDirection: 18,
+    bookmakerConsensus: 18,
+    marketHeat: 14,
+    upsetControl: 14,
+    scoreOddsFit: 9,
+    goalsFit: 5
+  },
+  labels: {
+    focus: "可重点跟踪",
+    wait: "等临场确认",
+    filter: "建议过滤",
+    lowRisk: "风险可控",
+    midRisk: "谨慎观察",
+    highRisk: "高风险"
+  }
+};
+
+  </script>
+  <script>
+/* 内嵌文件：engine/scoring.js */
+// 世界杯风控评分引擎
+// 目标：把操盘风控、盘口合理性、多家公司一致性、波胆热区、临场确认等计算逻辑从页面中拆出来。
+(function () {
+  const CONFIG = window.SCORING_CONFIG || {
+    scoreRange: { maxCorrectScore: 5 },
+    riskThresholds: { focus: 72, wait: 55 },
+    weights: {
+      handicapChange: 22,
+      waterDirection: 18,
+      bookmakerConsensus: 18,
+      marketHeat: 14,
+      upsetControl: 14,
+      scoreOddsFit: 9,
+      goalsFit: 5
+    },
+    labels: {
+      focus: "可重点跟踪",
+      wait: "等临场确认",
+      filter: "建议过滤",
+      lowRisk: "风险可控",
+      midRisk: "谨慎观察",
+      highRisk: "高风险"
+    }
+  };
+
+  function bestGoal(match) {
+    return [...match.goals].sort((a, b) => b[1] - a[1])[0];
+  }
+
+  function last(arr) {
+    return arr[arr.length - 1];
+  }
+
+  function fullScoreMarket(m) {
+    const result = [];
+    const maxScore = CONFIG.scoreRange.maxCorrectScore;
+    for (let h = 0; h <= maxScore; h++) {
+      for (let a = 0; a <= maxScore; a++) {
+        const score = `${h}:${a}`;
+        const base = m.scoreOdds[score] || estimateScoreOdds(m, h, a);
+        const first = base[0];
+        const lastValue = base[base.length - 1];
+        result.push({
+          score,
+          home: h,
+          away: a,
+          values: base,
+          last: lastValue,
+          change: ((lastValue - first) / first) * 100,
+          type: h > a ? "主胜" : h === a ? "平局" : "客胜"
+        });
+      }
+    }
+
+    [
+      { score: "其他主胜", values: [31, 29, 27, 25, 23], type: "主胜" },
+      { score: "其他平局", values: [41, 39, 37, 35, 33], type: "平局" },
+      { score: "其他客胜", values: [36, 34, 31, 29, 26], type: "客胜" }
+    ].forEach(x => result.push({
+      ...x,
+      home: maxScore + 1,
+      away: maxScore + 1,
+      last: x.values[x.values.length - 1],
+      change: ((x.values[x.values.length - 1] - x.values[0]) / x.values[0]) * 100
+    }));
+    return result;
+  }
+
+  function handicapTimeline(m) {
+    if (m.handicap.timeline?.length) return m.handicap.timeline;
+    return m.handicap.homeWater.map((homeWater, index) => ({
+      time: ["初盘", "T-24h", "T-6h", "T-1h", "临场"][index] || `T${index}`,
+      line: m.handicap.line,
+      homeWater,
+      awayWater: m.handicap.awayWater[index]
+    }));
+  }
+
+  function parseHandicapValue(line) {
+    const match = line.match(/(-?\d+(?:\.\d+)?)/);
+    return match ? Number(match[1]) : 0;
+  }
+
+  function lineMovementSummary(m) {
+    const timeline = handicapTimeline(m);
+    const first = timeline[0];
+    const lastItem = timeline[timeline.length - 1];
+    const firstValue = parseHandicapValue(first.line);
+    const lastValue = parseHandicapValue(lastItem.line);
+    const movementValue = Number((lastValue - firstValue).toFixed(2));
+    let movement = "盘口平稳";
+    let meaning = "盘口没有明显升降，重点看水位和波胆是否配合。";
+    if (movementValue < 0) {
+      movement = "盘口升深";
+      meaning = "让球门槛变高，通常代表强势方阻力变大，也可能是真支持。";
+    } else if (movementValue > 0) {
+      movement = "盘口退浅";
+      meaning = "让球门槛变低，通常代表强势方信心下降或市场出现反向压力。";
+    }
+    return {
+      opening: first.line,
+      closing: lastItem.line,
+      movement,
+      movementValue,
+      meaning
+    };
+  }
+
+  function estimateScoreOdds(m, h, a) {
+    const total = h + a;
+    const diff = h - a;
+    const favHome = m.probs.home >= m.probs.away;
+    let start = 7 + total * 2.7 + Math.abs(diff) * 1.5;
+    if ((favHome && diff > 0) || (!favHome && diff < 0)) start -= 1.8;
+    if ((favHome && diff < 0) || (!favHome && diff > 0)) start += 5.5;
+    if (total >= 5) start += 7;
+    if (h === a) start += total <= 2 ? -0.8 : 4;
+    start = Math.max(5.2, Number(start.toFixed(1)));
+    const focus = m.scoreProb.find(x => x[0] === `${h}:${a}`);
+    const drop = focus ? .18 : ((diff < 0 && m.confidence > 60) ? .10 : .06);
+    return [0, 1, 2, 3, 4].map(i => Number((start * (1 - drop * i / 4)).toFixed(1)));
+  }
+
+  function handicapProfile(m) {
+    const timeline = handicapTimeline(m);
+    const h = timeline.map(x => x.homeWater);
+    const a = timeline.map(x => x.awayWater);
+    const hMove = last(h) - h[0];
+    const aMove = last(a) - a[0];
+    const heat = Math.min(95, Math.round(52 + Math.abs(hMove - aMove) * 180 + (m.confidence - 50) * .7));
+    const upset = Math.max(5, Math.min(90, Math.round((m.confidence > 65 ? 36 : 24) + (hMove > 0 ? 28 : 0) + (aMove < 0 ? 25 : 0) + (m.resultCorrect ? -8 : 18))));
+    const signal = hMove < 0 && aMove > 0 ? "上盘受热" : hMove > 0 && aMove < 0 ? "下盘升温" : "分歧不大";
+    const depth = last(timeline).line.includes("-1.5") ? "盘口较深" : last(timeline).line.includes("-1") ? "中深盘口" : "浅盘或平手";
+    const waterDirection = signal === "上盘受热" ? "水位支持强队方向" : signal === "下盘升温" ? "水位对热门不友好" : "水位暂时平稳";
+    const heatRisk = heat > 75 ? "热度偏高，要防热门过热" : heat > 60 ? "热度中等，需要继续观察" : "热度不算极端";
+    const upsetText = upset > 60 ? "爆冷信号明显" : upset > 40 ? "有一定爆冷空间" : "爆冷信号较弱";
+    return { heat, upset, signal, depth, waterDirection, heatRisk, upsetText };
+  }
+
+  function handicapRationality(m) {
+    const profile = handicapProfile(m);
+    const market = fullScoreMarket(m);
+    const hotScores = [...market].sort((a, b) => a.change - b.change).slice(0, 6);
+    const favHome = m.probs.home >= m.probs.away;
+    const favType = favHome ? "主胜" : "客胜";
+    const favHot = hotScores.filter(x => x.type === favType).length;
+    const drawHot = hotScores.filter(x => x.type === "平局").length;
+    const coldHot = hotScores.filter(x => x.type !== favType && x.type !== "平局").length;
+    let score = 55;
+
+    if (profile.signal === "上盘受热" && favHot >= 2) score += 18;
+    if (profile.signal === "下盘升温") score -= 16;
+    if (profile.heat > 78) score -= 8;
+    if (profile.upset > 60) score -= 15;
+    if (drawHot >= 2) score -= 6;
+    if (coldHot >= 2) score -= 10;
+    if (profile.depth === "盘口较深" && m.confidence >= 65) score += 8;
+    if (profile.depth === "浅盘或平手" && Math.abs(m.probs.home - m.probs.away) <= 8) score += 8;
+
+    score = Math.max(10, Math.min(95, Math.round(score)));
+    const level = score >= 75 ? "盘口较合理" : score >= 55 ? "需要观察" : "风险偏高";
+    const reasons = [
+      ["水位方向", profile.waterDirection],
+      ["热度判断", profile.heatRisk],
+      ["爆冷判断", profile.upsetText],
+      ["波胆核对", favHot >= 2 ? "热门方向波胆有配合" : coldHot >= 2 ? "冷门波胆有异动" : "波胆分布较分散"]
+    ];
+    return { score, level, reasons };
+  }
+
+  function scoreHeatSummary(m) {
+    const market = fullScoreMarket(m);
+    const hot = [...market].sort((a, b) => a.change - b.change).slice(0, 10);
+    const byType = {
+      主胜: hot.filter(x => x.type === "主胜"),
+      平局: hot.filter(x => x.type === "平局"),
+      客胜: hot.filter(x => x.type === "客胜")
+    };
+    const lowGoal = hot.filter(x => x.home + x.away <= 2);
+    const midGoal = hot.filter(x => x.home + x.away >= 3 && x.home + x.away <= 4);
+    const highGoal = hot.filter(x => x.home + x.away >= 5);
+    const topType = Object.entries(byType).sort((a, b) => b[1].length - a[1].length)[0][0];
+    const goalBias = highGoal.length >= 3 ? "大球热度更高" : lowGoal.length >= 3 ? "小球热度更高" : midGoal.length >= 3 ? "中等进球热度更高" : "进球数信号分散";
+    const upsetHint = byType.客胜.length >= 3 || (m.probs.home > m.probs.away && byType.客胜.length >= 2)
+      ? "冷门比分有热度，需要防爆冷"
+      : byType.平局.length >= 3
+        ? "平局比分有热度，需要防平"
+        : "冷门信号暂时不强";
+    const plainText = `当前波胆热区更偏${topType}，${goalBias}，${upsetHint}。`;
+    const groups = [
+      ["主胜热区", byType.主胜.slice(0, 3).map(x => `${x.score}(${x.change.toFixed(1)}%)`).join(" / ") || "不明显"],
+      ["平局热区", byType.平局.slice(0, 3).map(x => `${x.score}(${x.change.toFixed(1)}%)`).join(" / ") || "不明显"],
+      ["客胜热区", byType.客胜.slice(0, 3).map(x => `${x.score}(${x.change.toFixed(1)}%)`).join(" / ") || "不明显"],
+      ["进球倾向", goalBias]
+    ];
+    return {
+      topType,
+      goalBias,
+      upsetHint,
+      plainText,
+      groups,
+      hotScores: hot.slice(0, 6)
+    };
+  }
+
+  function handicapPlainExplanation(m) {
+    const profile = handicapProfile(m);
+    const lineMove = lineMovementSummary(m);
+    const timeline = handicapTimeline(m);
+    const first = timeline[0];
+    const lastItem = timeline[timeline.length - 1];
+    const homeWaterMove = Number((lastItem.homeWater - first.homeWater).toFixed(2));
+    const awayWaterMove = Number((lastItem.awayWater - first.awayWater).toFixed(2));
+    let waterText = "上下盘水位变化不大，市场态度暂时不算极端。";
+    if (homeWaterMove < -0.05 && awayWaterMove > 0.05) {
+      waterText = "上盘水位下降、下盘水位上升，说明市场更愿意接受强势方方向，但也要防热门过热。";
+    } else if (homeWaterMove > 0.05 && awayWaterMove < -0.05) {
+      waterText = "上盘水位上升、下盘水位下降，说明强势方开始变得不舒服，弱势方或冷门方向在升温。";
+    }
+
+    let lineText = "盘口没有明显变化，说明机构暂时没有明显提高或降低门槛。";
+    if (lineMove.movement === "盘口升深") {
+      lineText = "盘口升深，意思是强势方需要赢更多才算打出，这可能是真支持，也可能是机构提高门槛来控制热门风险。";
+    } else if (lineMove.movement === "盘口退浅") {
+      lineText = "盘口退浅，意思是强势方门槛降低，通常代表机构对强势方信心下降，或者市场有反向资金进入。";
+    }
+
+    const riskText = profile.upset > 60
+      ? "爆冷潜力偏高，这场不适合只看热门方向。"
+      : profile.upset > 40
+        ? "有一定爆冷空间，需要保留防守方案。"
+        : "爆冷信号暂时不明显，可以更多关注主方向是否继续被盘口支持。";
+
+    return {
+      headline: `${lineMove.movement}，${profile.signal}`,
+      items: [
+        ["盘口表达", lineText],
+        ["水位表达", waterText],
+        ["市场热度", profile.heatRisk],
+        ["冷门提醒", riskText]
+      ],
+      conclusion: `${lineText}${waterText}${riskText}`
+    };
+  }
+
+  function finalPrediction(m) {
+    const profile = handicapProfile(m);
+    const rational = handicapRationality(m);
+    const market = fullScoreMarket(m);
+    const hotScores = [...market].sort((a, b) => a.change - b.change).slice(0, 4).map(x => x.score);
+    const goal = bestGoal(m)[0];
+    const favorite = m.probs.home > m.probs.away ? m.home : m.away;
+    const drawRisk = m.probs.draw >= 30 || hotScores.some(s => s.includes(":") && s.split(":")[0] === s.split(":")[1]);
+    let direction = `${favorite}方向`;
+    if (profile.upset > 62) direction = "防冷门";
+    else if (drawRisk) direction = `${favorite}不败，防平`;
+
+    let confidence = Math.round((m.confidence * .45) + (rational.score * .35) + ((100 - profile.upset) * .20));
+    confidence = Math.max(20, Math.min(92, confidence));
+    return {
+      direction,
+      scoreZone: hotScores.slice(0, 3).join(" / "),
+      goalZone: goal,
+      confidence
+    };
+  }
+
+  function bettingReferencePlan(m) {
+    const risk = riskControlScore(m);
+    const profile = handicapProfile(m);
+    const final = finalPrediction(m);
+    const hotMarket = [...fullScoreMarket(m)].sort((a, b) => a.change - b.change);
+    const mainScores = hotMarket.slice(0, 3).map(x => x.score).join(" / ");
+    const drawScores = hotMarket.filter(x => x.type === "平局").slice(0, 2).map(x => x.score).join(" / ") || "1:1 / 0:0";
+    const coldScores = hotMarket.filter(x => x.type !== (m.probs.home >= m.probs.away ? "主胜" : "客胜") && x.type !== "平局").slice(0, 2).map(x => x.score).join(" / ") || "0:1 / 1:2";
+    const favTeam = m.probs.home >= m.probs.away ? m.home : m.away;
+    const underdog = m.probs.home >= m.probs.away ? m.away : m.home;
+    const goal = bestGoal(m)[0];
+    const result = profile.upset > 62 ? `${underdog}不败方向` : final.direction.includes("防平") ? `${favTeam}不败` : `${favTeam}方向`;
+    const coverResult = profile.upset > 62 ? `${favTeam}方向少量防守` : "平局或冷门防守";
+    return {
+      main: {
+        grade: risk.action,
+        result,
+        scores: mainScores,
+        goals: goal,
+        handicap: profile.signal
+      },
+      cover: {
+        grade: profile.upset > 60 ? "必须防" : "可选防",
+        result: coverResult,
+        scores: profile.upset > 60 ? coldScores : drawScores,
+        goals: goal.includes("0-1") ? "小球优先" : goal,
+        usage: "用于防临场反向变化"
+      }
+    };
+  }
+
+  function liveConfirmation(m) {
+    const profile = handicapProfile(m);
+    return [
+      { name: "让球盘口", condition: "盘口升盘且上盘不升水", action: "主方向可信度提高" },
+      { name: "水位反向", condition: "热门方向临场升水，下盘降水", action: "降低主方向，转为防冷或过滤" },
+      { name: "多家公司", condition: "3家以上公司同方向变盘", action: "信号加强；如果分歧大则继续等待" },
+      { name: "波胆热区", condition: "主方向比分集体降赔", action: "候选比分可信度提高" },
+      { name: "首发消息", condition: "核心球员缺阵或轮换", action: "重新计算胜平负和进球数" },
+      {
+        name: "当前状态",
+        condition: profile.upset > 60 ? "爆冷潜力偏高" : "爆冷信号未明显放大",
+        action: profile.upset > 60 ? "必须保留防守方案" : "按主方案观察临场"
+      }
+    ];
+  }
+
+  function bookmakerConsensus(m) {
+    const profile = handicapProfile(m);
+    const h = m.handicap.homeWater;
+    const a = m.handicap.awayWater;
+    const baseHome = last(h);
+    const baseAway = last(a);
+    const baseLine = last(handicapTimeline(m)).line;
+    const variants = [
+      { name: "A公司", lineShift: 0, homeAdjust: 0.00, awayAdjust: 0.00 },
+      { name: "B公司", lineShift: profile.signal === "上盘受热" ? 0 : -0.25, homeAdjust: 0.03, awayAdjust: -0.02 },
+      { name: "C公司", lineShift: profile.signal === "下盘升温" ? -0.25 : 0, homeAdjust: -0.02, awayAdjust: 0.03 },
+      { name: "D公司", lineShift: 0, homeAdjust: 0.01, awayAdjust: -0.01 },
+      { name: "E公司", lineShift: profile.upset > 60 ? -0.25 : 0, homeAdjust: profile.upset > 60 ? 0.05 : -0.01, awayAdjust: profile.upset > 60 ? -0.04 : 0.02 }
+    ];
+    const books = variants.map(v => {
+      const homeWater = Number((baseHome + v.homeAdjust).toFixed(2));
+      const awayWater = Number((baseAway + v.awayAdjust).toFixed(2));
+      const signal = homeWater < awayWater ? "偏上盘" : homeWater > awayWater ? "偏下盘" : "均衡";
+      return {
+        name: v.name,
+        line: shiftLine(baseLine, v.lineShift),
+        homeWater,
+        awayWater,
+        signal
+      };
+    });
+    const mainSignal = books[0].signal;
+    const same = books.filter(b => b.signal === mainSignal).length;
+    const consistency = Math.round(same / books.length * 100);
+    const comment = consistency >= 80
+      ? "多家公司方向接近，盘口信号可信度较高，但仍要看是否热门过热。"
+      : consistency >= 60
+        ? "多数公司方向一致，但仍有分歧，适合继续跟踪临场变化。"
+        : "公司之间分歧明显，不适合过早下结论，风控上应降低信心。";
+    return { books, consistency, comment };
+  }
+
+  function shiftLine(line, shift) {
+    if (!shift) return line;
+    const match = line.match(/(.+?)\s(-?\d+(?:\.\d+)?)/);
+    if (!match) return line;
+    const team = match[1];
+    const value = Number(match[2]) + shift;
+    return `${team} ${value > 0 ? "+" : ""}${value}`;
+  }
+
+  function riskControlScore(m) {
+    const profile = handicapProfile(m);
+    const rational = handicapRationality(m);
+    const consensus = bookmakerConsensus(m);
+    const market = fullScoreMarket(m);
+    const hot = [...market].sort((a, b) => a.change - b.change).slice(0, 8);
+    const favType = m.probs.home >= m.probs.away ? "主胜" : "客胜";
+    const favHot = hot.filter(x => x.type === favType).length;
+    const coldHot = hot.filter(x => x.type !== favType && x.type !== "平局").length;
+    const drawHot = hot.filter(x => x.type === "平局").length;
+    const goalTop = bestGoal(m)[0];
+
+    const handicapChangeScore = rational.score;
+    const waterScore = profile.signal === "上盘受热" ? 72 : profile.signal === "下盘升温" ? 46 : 60;
+    const heatScore = profile.heat > 80 ? 42 : profile.heat > 65 ? 58 : 72;
+    const upsetScore = 100 - profile.upset;
+    const scoreOddsScore = favHot >= 3 ? 75 : coldHot >= 2 ? 42 : drawHot >= 2 ? 55 : 62;
+    const goalScore = goalTop.includes("2-3") ? 66 : goalTop.includes("0-1") ? 58 : 52;
+    const consensusScore = consensus.consistency;
+
+    const weights = CONFIG.weights;
+    const parts = [
+      { name: "让球盘口变化", weight: weights.handicapChange, score: handicapChangeScore, note: rational.level },
+      { name: "上下盘水位", weight: weights.waterDirection, score: waterScore, note: profile.waterDirection },
+      { name: "多家公司一致性", weight: weights.bookmakerConsensus, score: consensusScore, note: consensus.comment },
+      { name: "市场热度控制", weight: weights.marketHeat, score: heatScore, note: profile.heatRisk },
+      { name: "爆冷风险控制", weight: weights.upsetControl, score: upsetScore, note: profile.upsetText },
+      { name: "波胆热区配合", weight: weights.scoreOddsFit, score: scoreOddsScore, note: favHot >= 3 ? "波胆支持主方向" : coldHot >= 2 ? "冷门波胆偏热" : "波胆信号一般" },
+      { name: "进球数配合", weight: weights.goalsFit, score: goalScore, note: `当前倾向 ${goalTop}` }
+    ];
+
+    const total = Math.round(parts.reduce((sum, p) => sum + p.score * p.weight / 100, 0));
+    const riskLevel = total >= CONFIG.riskThresholds.focus ? CONFIG.labels.lowRisk : total >= CONFIG.riskThresholds.wait ? CONFIG.labels.midRisk : CONFIG.labels.highRisk;
+    const action = total >= CONFIG.riskThresholds.focus ? CONFIG.labels.focus : total >= CONFIG.riskThresholds.wait ? CONFIG.labels.wait : CONFIG.labels.filter;
+    const reverseRisks = [
+      ["热门过热", profile.heat > 75 ? "偏高" : "可接受", "热度高但盘口不配合时，容易出问题"],
+      ["冷门波胆", coldHot >= 2 ? "有异动" : "不明显", "冷门比分持续降赔，要降低主方向信心"],
+      ["平局风险", drawHot >= 2 ? "偏高" : "一般", "淘汰赛或强强对话，平局权重要提高"],
+      ["公司分歧", consensus.consistency < 60 ? "明显" : "不明显", "多家公司不一致时，不宜过早判断"]
+    ];
+    return { total, riskLevel, action, parts, reverseRisks };
+  }
+
+  const api = {
+    bestGoal,
+    fullScoreMarket,
+    estimateScoreOdds,
+    handicapTimeline,
+    lineMovementSummary,
+    scoreHeatSummary,
+    handicapPlainExplanation,
+    handicapProfile,
+    handicapRationality,
+    finalPrediction,
+    bettingReferencePlan,
+    liveConfirmation,
+    bookmakerConsensus,
+    riskControlScore
+  };
+
+  window.ScoringEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/backtest.js */
+// 回测统计引擎
+// 目标：把命中率、比分区间、进球区间、冷门预警等计算从页面中拆出来。
+// 后期接入 2026 世界杯真实数据时，页面只负责展示，回测引擎负责计算。
+(function () {
+  function actualOutcome(m) {
+    if (!m.actual) return "未结束";
+    const [home, away] = m.actual.split(":").map(Number);
+    if (home > away) return "主胜";
+    if (home < away) return "客胜";
+    return "平局";
+  }
+
+  function favoriteOutcome(m) {
+    if (m.probs.home === m.probs.away) return "平局";
+    return m.probs.home > m.probs.away ? "主胜" : "客胜";
+  }
+
+  function scoreZoneHit(m, final) {
+    if (!m.actual) return false;
+    return final.scoreZone.split(" / ").includes(m.actual);
+  }
+
+  function goalZoneHit(m, final) {
+    if (!m.actual) return false;
+    const [home, away] = m.actual.split(":").map(Number);
+    const total = home + away;
+    if (final.goalZone.includes("0-1")) return total <= 1;
+    if (final.goalZone.includes("2-3")) return total >= 2 && total <= 3;
+    if (final.goalZone.includes("4")) return total >= 4;
+    return false;
+  }
+
+  function upsetHappened(m) {
+    if (!m.actual) return false;
+    const fav = favoriteOutcome(m);
+    const actual = actualOutcome(m);
+    return fav !== "平局" && actual !== fav;
+  }
+
+  function pct(part, total) {
+    return total ? Math.round(part / total * 100) + "%" : "暂无";
+  }
+
+  function backtestRows(list) {
+    return list
+      .filter(m => m.actual)
+      .map(m => {
+        const risk = riskControlScore(m);
+        const profile = handicapProfile(m);
+        const final = finalPrediction(m);
+        return {
+          match: m,
+          risk,
+          profile,
+          final,
+          directionHit: Boolean(m.resultCorrect),
+          scoreHit: scoreZoneHit(m, final),
+          goalHit: goalZoneHit(m, final),
+          upset: upsetHappened(m),
+          warnedUpset: profile.upset > 60
+        };
+      });
+  }
+
+  function backtestStats(list) {
+    const rows = backtestRows(list);
+    const focusRows = rows.filter(x => x.risk.total >= 72);
+    const waitRows = rows.filter(x => x.risk.total >= 55 && x.risk.total < 72);
+    const filterRows = rows.filter(x => x.risk.total < 55);
+    const warned = rows.filter(x => x.warnedUpset);
+    const missRows = rows.filter(x => !x.directionHit || (x.warnedUpset && !x.upset));
+    return {
+      rows,
+      total: rows.length,
+      directionRate: pct(rows.filter(x => x.directionHit).length, rows.length),
+      scoreRate: pct(rows.filter(x => x.scoreHit).length, rows.length),
+      goalRate: pct(rows.filter(x => x.goalHit).length, rows.length),
+      focusRate: pct(focusRows.filter(x => x.directionHit).length, focusRows.length),
+      waitRate: pct(waitRows.filter(x => x.directionHit).length, waitRows.length),
+      filterRate: pct(filterRows.filter(x => x.directionHit).length, filterRows.length),
+      upsetWarnRate: pct(warned.filter(x => x.upset).length, warned.length),
+      missRows
+    };
+  }
+
+  const api = {
+    actualOutcome,
+    favoriteOutcome,
+    scoreZoneHit,
+    goalZoneHit,
+    upsetHappened,
+    backtestRows,
+    backtestStats
+  };
+
+  window.BacktestEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/intent.js */
+// 盘口意图判断模块
+// 目标：把“盘口怎么变”进一步翻译成“机构可能想表达什么”。
+// 注意：这里是风控判断，不是保证结果。后期接真实多家公司数据后，需要用回测继续修正规则。
+(function () {
+  function last(arr) {
+    return arr[arr.length - 1];
+  }
+
+  function getLineIntent(m) {
+    const profile = handicapProfile(m);
+    const lineMove = lineMovementSummary(m);
+    const timeline = handicapTimeline(m);
+    const first = timeline[0];
+    const latest = last(timeline);
+    const homeWaterMove = Number((latest.homeWater - first.homeWater).toFixed(2));
+    const awayWaterMove = Number((latest.awayWater - first.awayWater).toFixed(2));
+    const consensus = bookmakerConsensus(m);
+    const heat = scoreHeatSummary(m);
+    const rational = handicapRationality(m);
+    const favoriteSide = m.probs.home >= m.probs.away ? "主队方向" : "客队方向";
+    const evidence = [];
+    let type = "暂不明确";
+    let confidence = 52;
+    let plain = "目前盘口、水位、波胆之间没有形成足够清晰的一致信号，适合继续观察。";
+    let action = "不要提前下重结论，等临场盘口和多家公司方向更清楚。";
+
+    const isHotFavorite = profile.signal === "上盘受热" && profile.heat >= 72;
+    const isReverseWater = profile.signal === "下盘升温";
+    const isDeepen = lineMove.movement === "盘口升深";
+    const isRetreat = lineMove.movement === "盘口退浅";
+    const hasHighConsensus = consensus.consistency >= 80;
+    const hasLowConsensus = consensus.consistency < 60;
+    const hasUpsetRisk = profile.upset >= 60;
+    const hasColdHeat = heat.upsetHint.includes("冷门") || heat.upsetHint.includes("防平");
+    const isRational = rational.score >= 70;
+
+    evidence.push(`盘口：${lineMove.opening} → ${lineMove.closing}，${lineMove.movement}`);
+    evidence.push(`水位：上盘 ${first.homeWater} → ${latest.homeWater}，下盘 ${first.awayWater} → ${latest.awayWater}`);
+    evidence.push(`热度：${profile.heat}%；冷门风险：${profile.upset}%`);
+    evidence.push(`多家公司一致性：${consensus.consistency}%`);
+
+    if (hasLowConsensus) {
+      type = "分歧大";
+      confidence = 62;
+      plain = "多家公司方向不够一致，说明市场和机构之间还没有形成统一态度。";
+      action = "这类比赛不适合提前判断，等临场至少 3 家以上公司同方向再考虑。";
+    } else if (isReverseWater || (isRetreat && hasUpsetRisk)) {
+      type = "阻上";
+      confidence = 70;
+      plain = "热门方向开始变得不舒服，机构没有给强势方很顺的条件，弱势方或冷门方向在升温。";
+      action = "降低热门方向权重，优先保留平局或冷门防守方案。";
+    } else if (isDeepen && isHotFavorite && hasHighConsensus && profile.heat >= 80) {
+      type = "控赔";
+      confidence = 74;
+      plain = "强势方太热，机构通过更深盘口或调水提高门槛，核心目的可能是控制热门方向赔付。";
+      action = "不要只看热门，必须检查波胆冷门和平局热区，避免追高。";
+    } else if (isDeepen && profile.signal === "上盘受热" && hasHighConsensus && isRational && !hasColdHeat) {
+      type = "真支持";
+      confidence = 76;
+      plain = `盘口、水位、多家公司方向较一致，比较像机构真的认可${favoriteSide}。`;
+      action = "可以列入重点跟踪，但仍要等临场确认上盘是否继续稳定。";
+    } else if (isHotFavorite && !isRational && (hasColdHeat || hasUpsetRisk)) {
+      type = "诱导";
+      confidence = 66;
+      plain = "表面看热门方向很热，但盘口合理性、冷门风险或波胆热区并不完全配合，可能在吸引大众追热门。";
+      action = "这类比赛宁可少碰，若参与也要把防平、防冷放在前面。";
+    }
+
+    const riskNote = {
+      真支持: "最怕临场突然升水或退盘，一旦发生，真支持要改成等待确认。",
+      控赔: "热门方向不是不能看，但价格可能已经不好，追热门容易买在高点。",
+      阻上: "强势方未必不能赢，但盘口正在提醒它赢得不舒服。",
+      诱导: "这类信号最容易让新手误以为热门很稳，需要用波胆和多家公司反查。",
+      分歧大: "分歧大的比赛最大问题不是方向错，而是过早下结论。",
+      暂不明确: "信号不清楚时，过滤往往比强行分析更好。"
+    }[type];
+
+    return {
+      type,
+      confidence,
+      plain,
+      action,
+      riskNote,
+      evidence: [
+        ...evidence,
+        `波胆：${heat.plainText}`,
+        `盘口合理性：${rational.score}，${rational.level}`
+      ],
+      factors: [
+        ["盘口意图", type],
+        ["判断信心", confidence + "%"],
+        ["大白话", plain],
+        ["处理建议", action],
+        ["风险提醒", riskNote]
+      ],
+      raw: {
+        homeWaterMove,
+        awayWaterMove,
+        lineMove,
+        profile,
+        consensus,
+        heat,
+        rational
+      }
+    };
+  }
+
+  const api = { getLineIntent };
+  window.IntentEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/review.js */
+// 赛后自动复盘模块
+// 目标：比赛结束后，不只判断“对/错”，还要解释可能错在哪里。
+// 注意：这是第一版规则归因，后期需要用更多历史比赛回测修正。
+(function () {
+  function actualOutcome(m) {
+    if (!m.actual) return "未结束";
+    const [home, away] = m.actual.split(":").map(Number);
+    if (home > away) return "主胜";
+    if (home < away) return "客胜";
+    return "平局";
+  }
+
+  function favoriteOutcome(m) {
+    if (m.probs.home === m.probs.away) return "平局";
+    return m.probs.home > m.probs.away ? "主胜" : "客胜";
+  }
+
+  function scoreHit(m, final) {
+    if (!m.actual) return false;
+    return final.scoreZone.split(" / ").includes(m.actual);
+  }
+
+  function goalHit(m, final) {
+    if (!m.actual) return false;
+    const [home, away] = m.actual.split(":").map(Number);
+    const total = home + away;
+    if (final.goalZone.includes("0-1")) return total <= 1;
+    if (final.goalZone.includes("2-3")) return total >= 2 && total <= 3;
+    if (final.goalZone.includes("4")) return total >= 4;
+    return false;
+  }
+
+  function upsetHappened(m) {
+    const fav = favoriteOutcome(m);
+    const actual = actualOutcome(m);
+    return fav !== "平局" && actual !== fav;
+  }
+
+  function reason(label, evidence, suggestion, level) {
+    return { label, evidence, suggestion, level: level || "中" };
+  }
+
+  function reviewMatch(m) {
+    const risk = riskControlScore(m);
+    const profile = handicapProfile(m);
+    const final = finalPrediction(m);
+    const intent = getLineIntent(m);
+    const heat = scoreHeatSummary(m);
+    const lineMove = lineMovementSummary(m);
+    const rational = handicapRationality(m);
+    const directionHit = Boolean(m.resultCorrect);
+    const scoreZoneHit = scoreHit(m, final);
+    const goalZoneHit = goalHit(m, final);
+    const upset = upsetHappened(m);
+    const reasons = [];
+
+    if (!m.actual) {
+      return {
+        match: m,
+        status: "未结束",
+        mainReason: "等待赛果",
+        conclusion: "比赛还没有结算，暂时不能做赛后复盘。",
+        reasons: [],
+        rows: []
+      };
+    }
+
+    if (!directionHit && profile.heat >= 75) {
+      reasons.push(reason(
+        "热门过热未过滤",
+        `市场热度 ${profile.heat}%，实际结果没有按主方向打出。`,
+        "下次遇到高热热门时，应降低主方向权重，优先检查盘口是否在控赔或诱导。",
+        "高"
+      ));
+    }
+
+    if (!directionHit && lineMove.movement === "盘口退浅") {
+      reasons.push(reason(
+        "退盘信号低估",
+        `盘口从 ${lineMove.opening} 退到 ${lineMove.closing}，但系统仍给了主方向。`,
+        "退盘代表强势方门槛降低，应提高防平、防冷权重。",
+        "高"
+      ));
+    }
+
+    if (!directionHit && profile.signal === "下盘升温") {
+      reasons.push(reason(
+        "下盘降水未重视",
+        "下盘方向升温，说明弱势方或冷门方向有资金和盘口信号支持。",
+        "类似比赛应降低热门信心，并检查冷门波胆是否同步降赔。",
+        "高"
+      ));
+    }
+
+    if (!directionHit && (m.probs.draw >= 30 || heat.upsetHint.includes("防平"))) {
+      reasons.push(reason(
+        "平局风险低估",
+        `平局概率 ${m.probs.draw}%，波胆提示：${heat.upsetHint}。`,
+        "淘汰赛、浅盘、平局波胆发热时，应把平局放入防守方案。",
+        "中"
+      ));
+    }
+
+    if (!directionHit && heat.upsetHint.includes("冷门")) {
+      reasons.push(reason(
+        "冷门波胆异动未加权",
+        heat.plainText,
+        "冷门比分持续变热时，应提高爆冷权重，避免只看强队方向。",
+        "中"
+      ));
+    }
+
+    if (!directionHit && intent.type === "分歧大") {
+      reasons.push(reason(
+        "多家公司分歧未降权",
+        "多家公司盘口方向不够统一，提前判断容易出错。",
+        "分歧大时应默认等待临场确认，而不是提前给强结论。",
+        "中"
+      ));
+    }
+
+    if (!goalZoneHit) {
+      reasons.push(reason(
+        "进球区间判断偏差",
+        `系统判断 ${final.goalZone}，实际比分 ${m.actual}。`,
+        "需要继续加入大小球盘口、水位和比赛节奏数据。",
+        "中"
+      ));
+    }
+
+    if (!scoreZoneHit) {
+      reasons.push(reason(
+        "比分区间覆盖不足",
+        `候选比分 ${final.scoreZone}，实际比分 ${m.actual}。`,
+        "波胆候选不能只看最热比分，应增加相邻比分和冷门比分覆盖。",
+        "低"
+      ));
+    }
+
+    if (!reasons.length) {
+      reasons.push(reason(
+        "判断基本合理",
+        "方向、比分区间或进球区间没有暴露明显问题。",
+        "继续观察更多样本，不要因为单场命中就过度提高权重。",
+        "低"
+      ));
+    }
+
+    const main = reasons[0];
+    const rows = [
+      ["赛前方向", final.direction],
+      ["实际结果", `${m.actual}（${actualOutcome(m)}）`],
+      ["方向命中", directionHit ? "命中" : "未命中"],
+      ["比分区间", scoreZoneHit ? "命中" : "未命中"],
+      ["进球区间", goalZoneHit ? "命中" : "未命中"],
+      ["盘口意图", `${intent.type}，信心 ${intent.confidence}%`],
+      ["主要复盘原因", main.label]
+    ];
+
+    return {
+      match: m,
+      status: directionHit ? "方向命中" : "方向失手",
+      directionHit,
+      scoreZoneHit,
+      goalZoneHit,
+      upset,
+      mainReason: main.label,
+      conclusion: main.suggestion,
+      reasons,
+      rows,
+      risk,
+      profile,
+      final,
+      intent,
+      rational
+    };
+  }
+
+  function reviewTournament(matches) {
+    const reviews = matches.filter(m => m.actual).map(reviewMatch);
+    const reasonMap = {};
+    reviews.forEach(r => {
+      const key = r.mainReason;
+      if (!reasonMap[key]) reasonMap[key] = { reason: key, count: 0, matches: [] };
+      reasonMap[key].count += 1;
+      reasonMap[key].matches.push(`${r.match.home} vs ${r.match.away}`);
+    });
+    const summary = Object.values(reasonMap).sort((a, b) => b.count - a.count);
+    return { reviews, summary };
+  }
+
+  const api = { reviewMatch, reviewTournament };
+  window.ReviewEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/model-advice.js */
+// 模型复盘建议模块
+// 目标：把多场比赛的复盘结果汇总成“下一步该调什么”的建议。
+// 注意：这里只给建议，不自动修改权重。任何权重调整都必须再经过历史回测验证。
+(function () {
+  const ADVICE_RULES = {
+    "热门过热未过滤": {
+      target: "降低热门过热场次评分",
+      suggestion: "市场热度过高时，不要继续给主方向加分；应提高控赔、诱导和防冷权重。",
+      configHint: "重点观察 marketHeat 和 upsetControl 的权重关系。"
+    },
+    "退盘信号低估": {
+      target: "提高退盘惩罚",
+      suggestion: "强势方从深盘退浅时，应明显降低主方向信心，并把比赛归入等临场确认。",
+      configHint: "重点观察 handicapChange 的退盘扣分逻辑。"
+    },
+    "下盘降水未重视": {
+      target: "提高下盘升温权重",
+      suggestion: "下盘持续降水时，说明弱势方或冷门方向有资金支撑，应提高爆冷预警。",
+      configHint: "重点观察 waterDirection 和 upsetControl。"
+    },
+    "平局风险低估": {
+      target: "提高防平权重",
+      suggestion: "淘汰赛、浅盘、平局波胆降赔时，应把平局放进防守方案。",
+      configHint: "后期可把 stage、盘口深度、平局波胆一起纳入防平规则。"
+    },
+    "冷门波胆异动未加权": {
+      target: "提高冷门波胆权重",
+      suggestion: "冷门比分连续降赔时，不能只看胜平负主方向，应提高冷门保护。",
+      configHint: "重点观察 scoreOddsFit 和 upsetControl。"
+    },
+    "多家公司分歧未降权": {
+      target: "提高分歧场过滤力度",
+      suggestion: "多家公司方向不一致时，默认降低置信度，避免提前给强结论。",
+      configHint: "重点观察 bookmakerConsensus。"
+    },
+    "进球区间判断偏差": {
+      target: "加强大小球和比赛节奏数据",
+      suggestion: "当前进球区间只靠粗粒度概率，后期应加入大小球盘口、水位和临场节奏信息。",
+      configHint: "重点观察 goalsFit，后期增加大小球时间线。"
+    },
+    "比分区间覆盖不足": {
+      target: "扩大候选比分覆盖",
+      suggestion: "候选比分不能只看最热比分，应加入相邻比分、冷门比分和其他比分分组。",
+      configHint: "重点观察 scoreOddsFit 和 scoreProb 生成方式。"
+    }
+  };
+
+  function rateText(part, total) {
+    return total ? `${Math.round(part / total * 100)}%` : "暂无";
+  }
+
+  function modelAdvice(matches) {
+    const review = reviewTournament(matches);
+    const stats = backtestStats(matches);
+    const reviews = review.reviews;
+    const total = reviews.length;
+    const misses = reviews.filter(r => !r.directionHit);
+    const goalMisses = reviews.filter(r => !r.goalZoneHit);
+    const scoreMisses = reviews.filter(r => !r.scoreZoneHit);
+
+    const reasonCount = {};
+    reviews.forEach(r => {
+      r.reasons.forEach(reason => {
+        if (reason.label === "判断基本合理") return;
+        if (!reasonCount[reason.label]) {
+          reasonCount[reason.label] = { reason: reason.label, count: 0, matches: [] };
+        }
+        reasonCount[reason.label].count += 1;
+        reasonCount[reason.label].matches.push(`${r.match.home} vs ${r.match.away}`);
+      });
+    });
+
+    const ranked = Object.values(reasonCount).sort((a, b) => b.count - a.count);
+    const suggestions = ranked.slice(0, 5).map(item => {
+      const rule = ADVICE_RULES[item.reason] || {
+        target: "继续观察",
+        suggestion: "这个问题出现次数还不够多，先增加样本再判断是否调整规则。",
+        configHint: "暂不建议改权重。"
+      };
+      const urgency = item.count >= 3 ? "高" : item.count === 2 ? "中" : "低";
+      return {
+        reason: item.reason,
+        count: item.count,
+        urgency,
+        target: rule.target,
+        suggestion: rule.suggestion,
+        configHint: rule.configHint,
+        matches: item.matches.slice(0, 3)
+      };
+    });
+
+    const summary = [
+      ["回测场次", `${total} 场`],
+      ["方向失手", `${misses.length} 场（${rateText(misses.length, total)}）`],
+      ["进球区间偏差", `${goalMisses.length} 场（${rateText(goalMisses.length, total)}）`],
+      ["比分区间未覆盖", `${scoreMisses.length} 场（${rateText(scoreMisses.length, total)}）`],
+      ["方向命中率", stats.directionRate],
+      ["冷门预警有效", stats.upsetWarnRate]
+    ];
+
+    let headline = "样本还少，先继续积累历史比赛，不建议大幅调整权重。";
+    if (total >= 8 && suggestions.length) {
+      headline = `当前最需要关注“${suggestions[0].reason}”，它在 ${suggestions[0].count} 个复盘点里反复出现。`;
+    }
+    if (misses.length / Math.max(total, 1) >= 0.45) {
+      headline += " 方向失手比例偏高，说明热门过滤和冷门保护需要重点验证。";
+    }
+
+    return {
+      total,
+      headline,
+      summary,
+      suggestions,
+      rows: suggestions.map(s => [
+        s.reason,
+        `${s.count}次`,
+        s.urgency,
+        s.target,
+        s.suggestion
+      ])
+    };
+  }
+
+  const api = { modelAdvice };
+  window.ModelAdviceEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/model-version.js */
+// 模型版本对比模块
+// 目标：在不改动当前正式模型的前提下，模拟“建议版模型”的回测表现。
+// 注意：建议版只是验证思路，不直接替换正式模型。
+(function () {
+  function pct(part, total) {
+    return total ? `${Math.round(part / total * 100)}%` : "暂无";
+  }
+
+  function scoreSetFromText(text) {
+    return new Set(String(text || "").split(" / ").map(x => x.trim()).filter(Boolean));
+  }
+
+  function actualGoalZone(m) {
+    if (!m.actual) return "";
+    const [home, away] = m.actual.split(":").map(Number);
+    const total = home + away;
+    if (total <= 1) return "0-1球";
+    if (total <= 3) return "2-3球";
+    return "4球以上";
+  }
+
+  function suggestedScoreZone(m, final) {
+    const base = scoreSetFromText(final.scoreZone);
+    const heat = scoreHeatSummary(m);
+    const market = fullScoreMarket(m);
+    heat.hotScores.slice(0, 4).forEach(x => base.add(x.score));
+    (m.scoreProb || []).slice(0, 4).forEach(x => base.add(x[0]));
+    market
+      .filter(x => x.change < -12)
+      .slice(0, 4)
+      .forEach(x => base.add(x.score));
+    return [...base].slice(0, 10);
+  }
+
+  function suggestedGoalZones(m, final) {
+    const zones = new Set([final.goalZone]);
+    const heat = scoreHeatSummary(m);
+    const best = [...m.goals].sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (best) zones.add(best);
+    if (heat.goalBias.includes("大球")) zones.add("4球以上");
+    if (heat.goalBias.includes("小球")) zones.add("0-1球");
+    if (heat.goalBias.includes("中等")) zones.add("2-3球");
+    return [...zones];
+  }
+
+  function suggestedRiskAction(m, risk, profile, intent) {
+    const final = finalPrediction(m);
+    const shouldFilter =
+      (profile.heat >= 78 && profile.upset >= 55) ||
+      profile.signal === "下盘升温" ||
+      intent.type === "诱导" ||
+      intent.type === "分歧大";
+    const shouldWait =
+      shouldFilter ||
+      intent.type === "控赔" ||
+      (m.stage === "淘汰赛" && m.probs.draw >= 28);
+
+    if (shouldFilter && risk.total < 72) return "建议过滤";
+    if (shouldWait) return "等临场确认";
+    return final.direction;
+  }
+
+  function compareModelVersions(matches) {
+    const rows = matches.filter(m => m.actual).map(m => {
+      const risk = riskControlScore(m);
+      const profile = handicapProfile(m);
+      const intent = getLineIntent(m);
+      const final = finalPrediction(m);
+      const currentDirectionHit = Boolean(m.resultCorrect);
+      const currentScoreHit = scoreZoneHit(m, final);
+      const currentGoalHit = goalZoneHit(m, final);
+      const action = suggestedRiskAction(m, risk, profile, intent);
+      const suggestedFilteredMiss = !currentDirectionHit && (action === "建议过滤" || action === "等临场确认");
+      const suggestedLostChance = currentDirectionHit && action === "建议过滤";
+      const scoreZones = suggestedScoreZone(m, final);
+      const goalZones = suggestedGoalZones(m, final);
+      const suggestedScoreHit = scoreZones.includes(m.actual);
+      const suggestedGoalHit = goalZones.includes(actualGoalZone(m));
+
+      return {
+        match: m,
+        currentDirectionHit,
+        currentScoreHit,
+        currentGoalHit,
+        action,
+        suggestedFilteredMiss,
+        suggestedLostChance,
+        suggestedEffective: currentDirectionHit || suggestedFilteredMiss,
+        suggestedScoreHit,
+        suggestedGoalHit,
+        reason: suggestedFilteredMiss
+          ? "建议版会把这场转为等待/过滤，避免硬追方向。"
+          : suggestedLostChance
+            ? "建议版过滤了原本命中的比赛，属于机会损失。"
+            : "建议版处理与当前模型接近。"
+      };
+    });
+
+    const total = rows.length;
+    const currentDirection = rows.filter(x => x.currentDirectionHit).length;
+    const currentScore = rows.filter(x => x.currentScoreHit).length;
+    const currentGoal = rows.filter(x => x.currentGoalHit).length;
+    const suggestedEffective = rows.filter(x => x.suggestedEffective).length;
+    const suggestedScore = rows.filter(x => x.suggestedScoreHit).length;
+    const suggestedGoal = rows.filter(x => x.suggestedGoalHit).length;
+    const protectedCount = rows.filter(x => x.suggestedFilteredMiss).length;
+    const lostChance = rows.filter(x => x.suggestedLostChance).length;
+
+    const summary = [
+      ["方向处理", pct(currentDirection, total), pct(suggestedEffective, total), `建议版多保护 ${protectedCount} 场失手，机会损失 ${lostChance} 场`],
+      ["比分覆盖", pct(currentScore, total), pct(suggestedScore, total), "建议版扩大候选比分范围"],
+      ["进球区间", pct(currentGoal, total), pct(suggestedGoal, total), "建议版结合波胆热区补充进球区间"]
+    ];
+
+    let verdict = "建议版只是模拟，还不能替换当前模型。";
+    if (suggestedEffective > currentDirection && lostChance <= 1) {
+      verdict = "建议版在历史样本里更会保护失手场，可以继续扩大样本验证。";
+    } else if (lostChance > protectedCount) {
+      verdict = "建议版过滤过度，暂时不建议采用。";
+    }
+
+    return {
+      total,
+      verdict,
+      summary,
+      rows: rows.map(x => [
+        `${x.match.home} vs ${x.match.away}`,
+        x.currentDirectionHit ? "命中" : "失手",
+        x.action,
+        x.suggestedScoreHit ? "覆盖" : "未覆盖",
+        x.suggestedGoalHit ? "命中" : "未命中",
+        x.reason
+      ])
+    };
+  }
+
+  const api = { compareModelVersions };
+  window.ModelVersionEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/cross-tournament.js */
+// 跨届汇总引擎
+// 目标：把 2018、2022 等已结束赛事放在一起验证，判断模型问题是否跨届存在。
+(function () {
+  function historicalTournamentMatches(tournaments) {
+    return tournaments
+      .filter(t => t.status === "已结束")
+      .map(t => ({
+        tournament: t,
+        matches: (window[t.dataKey] || []).map(m => ({ ...m, tournamentId: t.id, tournamentName: t.short }))
+      }))
+      .filter(x => x.matches.length);
+  }
+
+  function crossTournamentStats(tournaments) {
+    const groups = historicalTournamentMatches(tournaments);
+    const allMatches = groups.flatMap(x => x.matches);
+    const aggregate = backtestStats(allMatches);
+    const advice = modelAdvice(allMatches);
+    const version = compareModelVersions(allMatches);
+    const review = reviewTournament(allMatches);
+
+    const tournamentRows = groups.map(group => {
+      const stats = backtestStats(group.matches);
+      return [
+        group.tournament.short,
+        `${stats.total} 场`,
+        stats.directionRate,
+        stats.scoreRate,
+        stats.goalRate,
+        stats.upsetWarnRate
+      ];
+    });
+
+    const recurringRows = review.summary.slice(0, 5).map(x => [
+      x.reason,
+      `${x.count} 次`,
+      x.matches.slice(0, 4).join(" / ")
+    ]);
+
+    const adviceRows = advice.suggestions.slice(0, 5).map(x => [
+      x.reason,
+      `${x.count} 次`,
+      x.urgency,
+      x.target
+    ]);
+
+    const overviewRows = [
+      ["历史总样本", `${aggregate.total} 场`],
+      ["整体方向命中", aggregate.directionRate],
+      ["整体比分覆盖", aggregate.scoreRate],
+      ["整体进球命中", aggregate.goalRate],
+      ["冷门预警有效", aggregate.upsetWarnRate]
+    ];
+
+    let conclusion = "历史样本还在扩充中，跨届结论暂时只作为观察。";
+    if (aggregate.total >= 12 && advice.suggestions.length) {
+      conclusion = `跨届样本显示，“${advice.suggestions[0].reason}”是当前最需要继续验证的问题。`;
+    }
+    if (version.verdict.includes("继续扩大样本验证")) {
+      conclusion += " 建议版模型有保护失手场的迹象，但仍不能直接替换正式模型。";
+    }
+
+    return {
+      total: aggregate.total,
+      conclusion,
+      overviewRows,
+      tournamentRows,
+      recurringRows,
+      adviceRows,
+      versionRows: version.summary
+    };
+  }
+
+  const api = { historicalTournamentMatches, crossTournamentStats };
+  window.CrossTournamentEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+/* 内嵌文件：engine/validate.js */
+// 数据校验模块
+// 目标：后期接入 2026 世界杯真实数据时，先检查字段是否完整，避免页面崩溃。
+(function () {
+  function hasValue(value) {
+    return value !== undefined && value !== null && value !== "";
+  }
+
+  function addIssue(issues, level, field, message) {
+    issues.push({ level, field, message });
+  }
+
+  function validateMatch(m) {
+    const issues = [];
+    ["id", "date", "stage", "home", "away"].forEach(field => {
+      if (!hasValue(m[field])) addIssue(issues, "错误", field, `缺少 ${field}`);
+    });
+
+    if (!m.probs) {
+      addIssue(issues, "错误", "probs", "缺少胜平负概率");
+    } else {
+      ["home", "draw", "away"].forEach(field => {
+        if (typeof m.probs[field] !== "number") addIssue(issues, "错误", `probs.${field}`, `缺少 ${field} 概率`);
+      });
+      const total = (m.probs.home || 0) + (m.probs.draw || 0) + (m.probs.away || 0);
+      if (Math.abs(total - 100) > 5) addIssue(issues, "提醒", "probs", `胜平负概率合计为 ${total}，建议接近 100`);
+    }
+
+    if (!Array.isArray(m.goals) || !m.goals.length) {
+      addIssue(issues, "错误", "goals", "缺少进球数概率");
+    }
+
+    if (!m.scoreOdds || !Object.keys(m.scoreOdds).length) {
+      addIssue(issues, "提醒", "scoreOdds", "缺少波胆赔率，波胆热力图会不完整");
+    }
+
+    if (!Array.isArray(m.scoreProb) || !m.scoreProb.length) {
+      addIssue(issues, "提醒", "scoreProb", "缺少候选比分概率");
+    }
+
+    if (!m.handicap) {
+      addIssue(issues, "错误", "handicap", "缺少让球盘口数据");
+    } else {
+      if (!Array.isArray(m.handicap.timeline) || m.handicap.timeline.length < 2) {
+        addIssue(issues, "错误", "handicap.timeline", "盘口时间线至少需要初盘和临场两条数据");
+      }
+      if (!hasValue(m.handicap.signal)) {
+        addIssue(issues, "提醒", "handicap.signal", "缺少盘口文字信号说明");
+      }
+    }
+
+    if (m.actual && !m.finalScore) {
+      addIssue(issues, "提醒", "finalScore", "已结束比赛建议填写最终结果");
+    }
+
+    const errorCount = issues.filter(x => x.level === "错误").length;
+    const warnCount = issues.filter(x => x.level === "提醒").length;
+    return {
+      match: m,
+      ok: errorCount === 0,
+      errorCount,
+      warnCount,
+      issues
+    };
+  }
+
+  function validateTournament(matches) {
+    const results = matches.map(validateMatch);
+    const errorMatches = results.filter(x => x.errorCount > 0);
+    const warnMatches = results.filter(x => x.warnCount > 0);
+    const totalErrors = results.reduce((sum, x) => sum + x.errorCount, 0);
+    const totalWarnings = results.reduce((sum, x) => sum + x.warnCount, 0);
+    return {
+      total: matches.length,
+      ok: totalErrors === 0,
+      totalErrors,
+      totalWarnings,
+      errorMatches,
+      warnMatches,
+      results
+    };
+  }
+
+  const api = { validateMatch, validateTournament };
+  window.ValidateEngine = api;
+  Object.assign(window, api);
+})();
+
+  </script>
+  <script>
+    // 当前选中的赛事（届别）。以下所有逻辑都从这里读取数据，
+    // 切换届别只改这一处状态，其他评分/UI 逻辑完全不动。
+    const TOURNAMENT_STORAGE_KEY = "selected_tournament_id";
+    let currentTournamentId = localStorage.getItem(TOURNAMENT_STORAGE_KEY)
+      || window.DEFAULT_TOURNAMENT_ID
+      || (window.TOURNAMENTS[0] && window.TOURNAMENTS[0].id);
+
+    function getCurrentTournament() {
+      return window.TOURNAMENTS.find(t => t.id === currentTournamentId) || window.TOURNAMENTS[0];
+    }
+
+    function getMatches() {
+      const t = getCurrentTournament();
+      return (window[t.dataKey] || []).slice();
+    }
+
+    const timeLabels = ["T-24h", "T-12h", "T-6h", "T-1h", "T-10m"];
+    let selectedId = null;
+    let currentTab = "overview";
+    let selectedScore = "2:1";
+
+    const $ = (id) => document.getElementById(id);
+
+    function filteredMatches() {
+      const stageEl = $("stageFilter");
+      const stage = stageEl ? stageEl.value : "全部";
+      const list = getMatches();
+      return stage === "全部" ? list : list.filter(m => m.stage === stage);
+    }
+
+    function changeTournament(id) {
+      currentTournamentId = id;
+      localStorage.setItem(TOURNAMENT_STORAGE_KEY, id);
+      // 切赛事后回到总览页，避免详情页指向旧赛事的比赛
+      $("detailScreen").classList.add("hidden");
+      $("overviewScreen").classList.remove("hidden");
+      selectedId = null;
+      renderOverview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function bestGoal(match) {
+      return [...match.goals].sort((a, b) => b[1] - a[1])[0];
+    }
+
+    function displayResult(m) {
+      // 统一展示已结束比赛的结果：常规无加时只显示一个比分；
+      // 有加时或点球时按《结算比分（最终结果）》格式展示。
+      if (!m.actual) return "";
+      if (m.finalScore && m.finalScore !== m.actual) {
+        return `${m.actual}（${finalResultDetail(m)}）`;
+      }
+      return m.actual;
+    }
+
+    function finalResultDetail(m) {
+      if (!m.finalScore || m.finalScore === m.actual) return "无加时／无点球";
+      return m.finalScore
+        .replace(m.actual, "")
+        .replace(/[()\s（）]/g, "")
+        .replace(/^，/, "");
+    }
+
+    function renderTournamentBar() {
+      const cur = getCurrentTournament();
+      const tList = window.TOURNAMENTS;
+      const statusCls = cur.status === "已结束" ? "good" : cur.status === "进行中" ? "warn" : "blue";
+      const pill = $("topbarPill");
+      if (pill) {
+        pill.textContent = `${cur.short} · ${cur.status}`;
+        pill.className = `pill ${statusCls}`;
+      }
+      $("tournamentBar").innerHTML = `
+        <section class="card section tournament-bar">
+          <div class="tournament-row">
+            <div>
+              <span class="pill ${statusCls}">${cur.status}</span>
+              <h2 style="margin-top:6px">${cur.name}</h2>
+              <p>${cur.description}</p>
+            </div>
+            <div class="tournament-picker">
+              <label>切换赛事</label>
+              <select id="tournamentSelect">
+                ${tList.map(t => `<option value="${t.id}" ${t.id === cur.id ? "selected" : ""}>${t.short} · ${t.status}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+        </section>
+      `;
+      $("tournamentSelect").addEventListener("change", e => changeTournament(e.target.value));
+    }
+
+    function renderEmptyState() {
+      const cur = getCurrentTournament();
+      $("summaryGrid").innerHTML = "";
+      $("priorityBoard").innerHTML = "";
+      $("backtestDashboard").innerHTML = "";
+      $("dataHealth").innerHTML = "";
+      $("matchTotal").textContent = "0 场";
+      $("matches").innerHTML = `
+        <section class="card section">
+          <h2>${cur.name}暂无比赛数据</h2>
+          <p>${cur.status === "未开始"
+            ? "这一届赛事还没有可用的盘口数据。等抽签和初盘出来后，按 matches-2022.js 的字段结构填入 " + cur.dataKey + " 即可，分析流程一行代码都不用改。"
+            : "当前赛事的数据文件是空的，请检查 " + cur.dataKey + " 是否正确填充。"}</p>
+          <div class="note"><p><b>提醒：</b>你可以在右上角“切换赛事”选择已有的届别，先继续完善分析方法。</p></div>
+        </section>
+      `;
+    }
+
+    function renderOverview() {
+      renderTournamentBar();
+      renderCrossTournamentDashboard();
+      const list = filteredMatches();
+      if (!list.length) {
+        renderEmptyState();
+        return;
+      }
+      renderDataHealth(list);
+      const scored = list.map(m => ({
+        match: m,
+        risk: riskControlScore(m),
+        profile: handicapProfile(m),
+        final: finalPrediction(m),
+        intent: getLineIntent(m)
+      }));
+      const focus = scored.filter(x => x.risk.total >= 72).length;
+      const wait = scored.filter(x => x.risk.total >= 55 && x.risk.total < 72).length;
+      const filter = scored.filter(x => x.risk.total < 55).length;
+      const highUpset = scored.filter(x => x.profile.upset > 60).length;
+
+      $("summaryGrid").innerHTML = [
+        ["重点跟踪", `${focus}场`],
+        ["等待确认", `${wait}场`],
+        ["建议过滤", `${filter}场`],
+        ["高冷门", `${highUpset}场`]
+      ].map(([k, v]) => `<div class="summary"><span>${k}</span><strong>${v}</strong></div>`).join("");
+
+      renderPriorityBoard(scored);
+      renderBacktestDashboard(list);
+      $("matchTotal").textContent = `${list.length} 场`;
+
+      $("matches").innerHTML = scored.map(({ match: m, risk, profile, final, intent }) => {
+        const goal = bestGoal(m);
+        return `
+          <article class="card match" onclick="openMatch(${m.id})">
+            <div class="match-line">
+              <div>
+                <div class="teams">${m.home} vs ${m.away}</div>
+                <div class="match-meta">
+                  <span class="pill">${m.date}</span>
+                  <span class="pill">${m.stage}</span>
+                  <span class="pill ${risk.total >= 72 ? "good" : risk.total >= 55 ? "warn" : "bad"}">${risk.action}</span>
+                </div>
+              </div>
+              <span class="pill ${profile.upset > 60 ? "warn" : "blue"}">冷门 ${profile.upset}%</span>
+            </div>
+            <div class="decision-strip">
+              <div class="decision-item"><span>风控分</span><strong>${risk.total} · ${risk.riskLevel}</strong></div>
+              <div class="decision-item"><span>方向</span><strong>${final.direction}</strong></div>
+              <div class="decision-item"><span>盘口意图</span><strong>${intent.type}</strong></div>
+              <div class="decision-item"><span>比分</span><strong>${final.scoreZone.split(" / ")[0]}</strong></div>
+              <div class="decision-item"><span>进球</span><strong>${goal[0]}</strong></div>
+              <div class="decision-item"><span>最终比分</span><strong>${displayResult(m) || "未结束"}</strong></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderCrossTournamentDashboard() {
+      const cross = crossTournamentStats(window.TOURNAMENTS);
+      if (!cross.total) {
+        $("crossTournamentDashboard").innerHTML = "";
+        return;
+      }
+      $("crossTournamentDashboard").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>跨届汇总看板</h2>
+              <p>把已结束的世界杯样本合在一起看，判断模型问题是单届偶然，还是跨届反复出现。</p>
+            </div>
+            <span class="pill blue">${cross.total} 场历史样本</span>
+          </div>
+          <div class="note"><p><b>跨届结论：</b>${cross.conclusion}</p></div>
+          ${table(["指标", "结果"], cross.overviewRows)}
+          <h3 style="margin-top:14px">各届表现</h3>
+          ${table(["届别", "样本", "方向命中", "比分覆盖", "进球命中", "冷门预警"], cross.tournamentRows)}
+          <h3 style="margin-top:14px">跨届高频问题</h3>
+          ${table(["问题", "出现", "代表比赛"], cross.recurringRows)}
+          <h3 style="margin-top:14px">跨届调优方向</h3>
+          ${table(["问题", "出现", "紧急度", "建议方向"], cross.adviceRows)}
+        </section>
+      `;
+    }
+
+    function renderDataHealth(list) {
+      const health = validateTournament(list);
+      const cls = health.ok ? "good" : "bad";
+      const title = health.ok ? "数据检查通过" : "数据需要修正";
+      const text = health.ok
+        ? `当前 ${health.total} 场比赛关键字段完整，可以正常分析。${health.totalWarnings ? "有 " + health.totalWarnings + " 个提醒，不影响页面打开。" : ""}`
+        : `发现 ${health.totalErrors} 个错误、${health.totalWarnings} 个提醒。后期接 2026 真实数据时，先修正错误再分析。`;
+      const issueRows = health.results
+        .filter(x => x.issues.length)
+        .slice(0, 5)
+        .map(x => [
+          `${x.match.home || "未知主队"} vs ${x.match.away || "未知客队"}`,
+          x.issues.map(i => `${i.level}：${i.message}`).join("；")
+        ]);
+      $("dataHealth").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>数据检查</h2>
+              <p>${text}</p>
+            </div>
+            <span class="pill ${cls}">${title}</span>
+          </div>
+          ${issueRows.length ? table(["比赛", "问题"], issueRows) : ""}
+        </section>
+      `;
+    }
+
+    function renderBacktestDashboard(list) {
+      const stats = backtestStats(list);
+      const review = reviewTournament(list);
+      const advice = modelAdvice(list);
+      const version = compareModelVersions(list);
+      if (!stats.total) {
+        $("backtestDashboard").innerHTML = "";
+        return;
+      }
+      $("backtestDashboard").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>回测仪表盘</h2>
+              <p>用已经结束的比赛验证这套风控体系：不是只看猜对几场，而是看“高分场是否更稳、冷门预警是否有用、比分和进球区间是否合理”。</p>
+            </div>
+            <span class="pill blue">${stats.total} 场已回测</span>
+          </div>
+          <div class="backtest-grid">
+            <div class="backtest-card"><span>方向命中率</span><strong>${stats.directionRate}</strong><p>胜平负/不败方向是否命中</p></div>
+            <div class="backtest-card"><span>比分区间命中</span><strong>${stats.scoreRate}</strong><p>候选比分是否包含实际比分</p></div>
+            <div class="backtest-card"><span>进球区间命中</span><strong>${stats.goalRate}</strong><p>0-1 / 2-3 / 4+ 是否命中</p></div>
+            <div class="backtest-card"><span>冷门预警有效</span><strong>${stats.upsetWarnRate}</strong><p>高冷门提示是否真的发生反向结果</p></div>
+          </div>
+          <div class="note"><p><b>风控分验证：</b>重点跟踪命中率 ${stats.focusRate}；等待确认命中率 ${stats.waitRate}；建议过滤命中率 ${stats.filterRate}。如果重点跟踪长期不高，说明评分权重需要回炉重调。</p></div>
+          <h3 style="margin-top:14px">复盘原因分布</h3>
+          ${table(["主要原因", "次数", "代表比赛"], review.summary.map(x => [x.reason, x.count + "次", x.matches.slice(0, 3).join(" / ")]))}
+          <h3 style="margin-top:14px">模型复盘建议</h3>
+          <div class="note"><p><b>当前判断：</b>${advice.headline}</p></div>
+          ${table(["问题", "出现", "紧急度", "建议调整", "说明"], advice.rows)}
+          <h3 style="margin-top:14px">模型版本对比</h3>
+          <div class="note"><p><b>对比结论：</b>${version.verdict}</p></div>
+          ${table(["指标", "当前模型", "建议版模拟", "说明"], version.summary)}
+          ${table(["比赛", "当前方向", "建议版处理", "比分", "进球", "原因"], version.rows.slice(0, 6))}
+          ${stats.missRows.length ? `
+            <h3 style="margin-top:14px">需要复盘的比赛</h3>
+            <div class="case-list">
+              ${stats.missRows.slice(0, 4).map(x => `
+                <div class="case-row" onclick="openMatch(${x.match.id})">
+                  <div>
+                    <strong>${x.match.home} vs ${x.match.away}</strong>
+                    <p>实际 ${displayResult(x.match)}；系统方向 ${x.final.direction}；冷门预警 ${x.warnedUpset ? "有" : "无"}</p>
+                  </div>
+                  <span class="pill ${x.directionHit ? "warn" : "bad"}">${x.directionHit ? "预警复盘" : "方向失手"}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<div class="note"><p><b>当前结果：</b>没有明显失手样本，但样本数还少，不能过早下结论。</p></div>`}
+        </section>
+      `;
+    }
+
+    function renderPriorityBoard(scored) {
+      const focus = [...scored].sort((a, b) => b.risk.total - a.risk.total).slice(0, 2);
+      const upset = [...scored].sort((a, b) => b.profile.upset - a.profile.upset).slice(0, 2);
+      const filter = [...scored].sort((a, b) => a.risk.total - b.risk.total).slice(0, 2);
+      $("priorityBoard").innerHTML = [
+        boardCard("重点跟踪", focus, "good", x => `${x.risk.total}分 · ${x.intent.type} · ${x.final.direction}`),
+        boardCard("冷门预警", upset, "warn", x => `冷门 ${x.profile.upset}% · ${x.intent.type}`),
+        boardCard("建议过滤", filter, "bad", x => `${x.risk.total}分 · ${x.intent.type}`)
+      ].join("");
+    }
+
+    function boardCard(title, items, type, descFn) {
+      return `
+        <section class="card board-card">
+          <h2>${title}<span class="pill ${type}">${items.length}</span></h2>
+          <div class="board-list">
+            ${items.map(x => `
+              <div class="board-row" onclick="openMatch(${x.match.id})">
+                <div><strong>${x.match.home} vs ${x.match.away}</strong><span>${descFn(x)}</span></div>
+                <span class="pill">${x.match.stage}</span>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function openMatch(id) {
+      selectedId = id;
+      const match = getMatch();
+      selectedScore = match.scoreProb[0][0];
+      currentTab = "overview";
+      $("overviewScreen").classList.add("hidden");
+      $("detailScreen").classList.remove("hidden");
+      renderDetail();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBack() {
+      $("detailScreen").classList.add("hidden");
+      $("overviewScreen").classList.remove("hidden");
+      renderOverview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function getMatch() {
+      return getMatches().find(m => m.id === selectedId);
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      renderDetail();
+    }
+
+    function renderDetail() {
+      const m = getMatch();
+      const risk = riskControlScore(m);
+      const profile = handicapProfile(m);
+      const final = finalPrediction(m);
+      const riskCls = risk.total >= 72 ? "good" : risk.total >= 55 ? "warn" : "bad";
+      $("detailTitle").innerHTML = `
+        <section class="card detail-title">
+          <div class="match-head">
+            <div>
+              <span class="pill blue">${m.date} · ${m.stage}</span>
+              <h2>${m.home} vs ${m.away}${displayResult(m) ? `<span class="title-score">${displayResult(m)}</span>` : ""}</h2>
+            </div>
+            <span class="pill ${riskCls}">${risk.action}</span>
+          </div>
+          <div class="decision-strip">
+            <div class="decision-item"><span>风控分</span><strong>${risk.total} · ${risk.riskLevel}</strong></div>
+            <div class="decision-item"><span>推荐处理</span><strong>${risk.action}</strong></div>
+            <div class="decision-item"><span>主方向</span><strong>${final.direction}</strong></div>
+            <div class="decision-item"><span>冷门风险</span><strong>${profile.upset}%</strong></div>
+            <div class="decision-item"><span>最终比分</span><strong>${displayResult(m) || "比赛未开始"}</strong></div>
+          </div>
+        </section>
+      `;
+
+      ["overview", "riskScore", "scoreOdds", "handicap", "collect"].forEach(t => {
+        $("tab" + t[0].toUpperCase() + t.slice(1)).classList.toggle("active", currentTab === t);
+      });
+
+      if (currentTab === "riskScore") return renderRiskScore(m);
+      if (currentTab === "scoreOdds") return renderScoreOdds(m);
+      if (currentTab === "handicap") return renderHandicap(m);
+      if (currentTab === "collect") return renderCollect(m);
+      renderMatchOverview(m);
+    }
+
+    function renderMatchOverview(m) {
+      const profile = handicapProfile(m);
+      const hotScore = fullScoreMarket(m).sort((a, b) => a.change - b.change)[0];
+      const final = finalPrediction(m);
+      const plan = bettingReferencePlan(m);
+      const live = liveConfirmation(m);
+      const review = m.actual ? reviewMatch(m) : null;
+      $("detailContent").innerHTML = `
+        <section class="card final-card">
+          <h2>单场结论</h2>
+          <p>先给处理建议，再看细节。这里不是鼓励每场都参与，而是帮你快速判断“跟踪、等待、过滤”。</p>
+          <div class="final-grid">
+            <div class="final-item"><span>处理建议</span><strong>${riskControlScore(m).action}</strong></div>
+            <div class="final-item"><span>候选比分</span><strong>${final.scoreZone}</strong></div>
+            <div class="final-item"><span>进球数</span><strong>${final.goalZone}</strong></div>
+            <div class="final-item"><span>信心分</span><strong>${final.confidence}%</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>风控参考方案</h2>
+          <p>这里是分析后的候选方向，不是保证结果。真正是否执行，要等临场盘口、首发和多家公司一致性确认。</p>
+          <div class="ticket-grid">
+            <div class="ticket recommended">
+              <h3>主方案 <span class="pill blue">${plan.main.grade}</span></h3>
+              <div class="ticket-line"><span>胜平负</span><strong>${plan.main.result}</strong></div>
+              <div class="ticket-line"><span>比分</span><strong>${plan.main.scores}</strong></div>
+              <div class="ticket-line"><span>进球数</span><strong>${plan.main.goals}</strong></div>
+              <div class="ticket-line"><span>让球倾向</span><strong>${plan.main.handicap}</strong></div>
+            </div>
+            <div class="ticket">
+              <h3>防守方案 <span class="pill warn">${plan.cover.grade}</span></h3>
+              <div class="ticket-line"><span>胜平负</span><strong>${plan.cover.result}</strong></div>
+              <div class="ticket-line"><span>比分</span><strong>${plan.cover.scores}</strong></div>
+              <div class="ticket-line"><span>进球数</span><strong>${plan.cover.goals}</strong></div>
+              <div class="ticket-line"><span>用途</span><strong>${plan.cover.usage}</strong></div>
+            </div>
+          </div>
+          <div class="note"><p><b>提醒：</b>如果风控结论是“等临场确认”或“建议过滤”，主方案只作为观察，不建议提前下结论。</p></div>
+        </section>
+        <section class="card section">
+          <h2>临场确认</h2>
+          <p>所谓“等临场确认”，就是开赛前 3 小时到 10 分钟这段时间，盘口、水位、波胆、首发可能会集中变化。</p>
+          ${table(["临场变化", "如果出现", "处理"], live.map(x => [x.name, x.condition, x.action]))}
+        </section>
+        <section class="card section">
+          <h2>先看盘口结论</h2>
+          <p>按照你的思路，系统先从让球水位判断强弱和冷门，再把波胆、进球数和胜平负合并计算。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>更占优方向</span><strong>${m.predict}</strong></div>
+            <div class="market-card"><span>让球信号</span><strong>${profile.signal}</strong></div>
+            <div class="market-card"><span>爆冷潜力</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>最热波胆</span><strong>${hotScore.score}</strong></div>
+          </div>
+        </section>
+        ${m.actual ? `
+        <section class="card section">
+          <h2>比赛结果对比</h2>
+          <p>结算比分按博彩公司常规时间结算，最终结果包含加时与点球。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>结算比分</span><strong>${m.actual}</strong></div>
+            <div class="market-card"><span>最终结果</span><strong>${finalResultDetail(m)}</strong></div>
+            <div class="market-card"><span>预测方向</span><strong>${m.predict}</strong></div>
+            <div class="market-card"><span>预测是否命中</span><strong>${m.resultCorrect ? "命中" : "未命中"}</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>赛后自动复盘</h2>
+          <p>这里不是简单说“对了”或“错了”，而是把赛前判断和真实结果对比，找出下一次需要修正的地方。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>复盘状态</span><strong>${review.status}</strong></div>
+            <div class="market-card"><span>主要原因</span><strong>${review.mainReason}</strong></div>
+            <div class="market-card"><span>比分区间</span><strong>${review.scoreZoneHit ? "命中" : "未命中"}</strong></div>
+            <div class="market-card"><span>进球区间</span><strong>${review.goalZoneHit ? "命中" : "未命中"}</strong></div>
+          </div>
+          ${table(["复盘项", "结果"], review.rows)}
+          ${table(["可能原因", "证据", "下次怎么修正"], review.reasons.map(r => [r.label, r.evidence, r.suggestion]))}
+          <div class="note"><p><b>复盘结论：</b>${review.conclusion}</p></div>
+        </section>` : ""}
+        <section class="card section">
+          <h2>比赛核心判断</h2>
+          <p>页面保持简单，但信息不能少。这里先看胜平负、比分、进球数三个核心结论。</p>
+          <div class="prob-grid">
+            <div class="prob"><span>${m.home}胜</span><strong>${m.probs.home}%</strong><div class="bar"><i style="width:${m.probs.home}%"></i></div></div>
+            <div class="prob"><span>平局</span><strong>${m.probs.draw}%</strong><div class="bar"><i style="width:${m.probs.draw}%"></i></div></div>
+            <div class="prob"><span>${m.away}胜</span><strong>${m.probs.away}%</strong><div class="bar"><i style="width:${m.probs.away}%"></i></div></div>
+          </div>
+        </section>
+        <section class="card section two-col">
+          <div>
+            <h2>比分概率</h2>
+            ${table(["比分", "概率"], m.scoreProb.map(x => [x[0], x[1] + "%"]))}
+          </div>
+          <div>
+            <h2>进球数概率</h2>
+            ${table(["进球数", "概率"], m.goals.map(x => [x[0], x[1] + "%"]))}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderScoreOdds(m) {
+      const market = fullScoreMarket(m);
+      const heatSummary = scoreHeatSummary(m);
+      const scores = market.map(x => x.score);
+      if (!scores.includes(selectedScore)) selectedScore = scores[0];
+      const selected = market.find(x => x.score === selectedScore);
+      const hotScores = [...market].sort((a, b) => a.change - b.change).slice(0, 6);
+      const maxScore = window.SCORING_CONFIG?.scoreRange?.maxCorrectScore ?? 5;
+      const heatmapColumns = `64px repeat(${maxScore + 1}, 1fr)`;
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>波胆赔率波动</h2>
+          <p>这里不只看几个热门比分，而是把 0:0 到 5:5、其他主胜、其他平局、其他客胜都纳入。颜色越深，代表这个比分赔率下降越明显，市场关注度越高。</p>
+          <div class="heatmap-wrap">
+            <div class="heatmap" style="grid-template-columns:${heatmapColumns};">
+              ${renderHeatmap(market)}
+            </div>
+          </div>
+          <div class="score-selector">
+            ${hotScores.map(x => `<button class="${x.score === selectedScore ? "active" : ""}" onclick="selectScore('${x.score}')">${x.score}</button>`).join("")}
+          </div>
+          <canvas id="scoreChart" class="chart" width="720" height="300"></canvas>
+          <div class="score-grid">
+            ${hotScores.map(x => {
+              const cls = x.change < -12 ? "good" : x.change < 0 ? "blue" : "warn";
+              return `<div class="score-cell"><strong>${x.score}</strong><span>当前 ${x.last} · 变化 <span class="pill ${cls}">${x.change.toFixed(1)}%</span></span></div>`;
+            }).join("")}
+          </div>
+          <div class="note">
+            <p><b>怎么看：</b>单个比分下降只能说明“这个点变热”，如果一组相邻比分一起下降，比如 1:0、2:0、2:1 同时下降，才说明市场对某一方小胜或大胜有连续预期。爆冷比分如果持续下降，要重点标记。</p>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>波胆热区总结</h2>
+          <p>${heatSummary.plainText}</p>
+          ${table(["热区", "当前信号"], heatSummary.groups)}
+          <div class="note"><p><b>大白话：</b>波胆热区不是让你只盯一个比分，而是看一片比分是不是一起变热。如果主胜比分一起热，说明主队方向更受关注；如果平局或客胜比分也热，就要防平或防冷。</p></div>
+        </section>
+      `;
+      drawLineChart("scoreChart", [{ label: selectedScore + " 波胆", values: selected.values, color: "#2563eb" }], "赔率");
+    }
+
+    function renderRiskScore(m) {
+      const score = riskControlScore(m);
+      const consensus = bookmakerConsensus(m);
+      $("detailContent").innerHTML = `
+        <section class="card final-card">
+          <h2>风控总评分</h2>
+          <p>这个评分不是判断谁稳赢，而是判断这场比赛是否值得深入跟踪，风险是否可控，盘口信号是否真实。</p>
+          <div class="final-grid">
+            <div class="final-item"><span>风控结论</span><strong>${score.action}</strong></div>
+            <div class="final-item"><span>综合评分</span><strong>${score.total}</strong></div>
+            <div class="final-item"><span>多家公司一致性</span><strong>${consensus.consistency}%</strong></div>
+            <div class="final-item"><span>风险等级</span><strong>${score.riskLevel}</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>评分拆解</h2>
+          <p>我们先按这个权重跑原型。后面接真实历史数据后，再用回测结果调整每项权重。</p>
+          ${table(["评分项", "权重", "得分", "说明"], score.parts.map(x => [x.name, x.weight + "%", x.score, x.note]))}
+        </section>
+        <section class="card section">
+          <h2>多家公司盘口对比</h2>
+          <p>如果只有一家变动，信号价值有限；如果多家公司同方向变化，信号更可靠。</p>
+          ${table(["公司", "盘口", "上盘水位", "下盘水位", "方向"], consensus.books.map(b => [b.name, b.line, b.homeWater, b.awayWater, b.signal]))}
+          <div class="note"><p><b>核对重点：</b>${consensus.comment}</p></div>
+        </section>
+        <section class="card section">
+          <h2>反向风险</h2>
+          ${table(["风险", "当前状态", "处理方式"], score.reverseRisks)}
+          <div class="note"><p><b>原则：</b>我们的目标不是每场都参与，而是过滤掉风险不舒服的比赛，只保留信号清晰、价格有价值、风险可控的场次。</p></div>
+        </section>
+      `;
+    }
+
+    function selectScore(score) {
+      selectedScore = score;
+      renderScoreOdds(getMatch());
+    }
+
+    function renderHandicap(m) {
+      const profile = handicapProfile(m);
+      const rational = handicapRationality(m);
+      const timeline = handicapTimeline(m);
+      const lineMove = lineMovementSummary(m);
+      const plain = handicapPlainExplanation(m);
+      const intent = getLineIntent(m);
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>让球水位波动</h2>
+          <p>你的思路是对的：先看让球水位。因为它更像市场对强弱关系的“真实表态”，再用波胆、进球数和新闻去核对它是否合理。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>初盘</span><strong>${lineMove.opening}</strong></div>
+            <div class="market-card"><span>临场盘</span><strong>${lineMove.closing}</strong></div>
+            <div class="market-card"><span>盘口变化</span><strong>${lineMove.movement}</strong></div>
+            <div class="market-card"><span>盘口幅度</span><strong>${lineMove.movementValue}</strong></div>
+          </div>
+          <div class="market-grid" style="margin-top:8px">
+            <div class="market-card"><span>水位信号</span><strong>${profile.signal}</strong></div>
+            <div class="market-card"><span>市场热度</span><strong>${profile.heat}%</strong></div>
+            <div class="market-card"><span>爆冷潜力</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>盘口状态</span><strong>${lineMove.movement}</strong></div>
+          </div>
+          <canvas id="handicapChart" class="chart" width="720" height="300"></canvas>
+          <div class="note"><p><b>本场解读：</b>${m.handicap.signal}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口水位白话解释</h2>
+          <p>${plain.headline}</p>
+          ${table(["看什么", "表达了什么"], plain.items)}
+          <div class="note"><p><b>一句话：</b>${plain.conclusion}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口意图判断</h2>
+          <p>这里开始从操盘手角度判断：机构这样调盘口和水位，可能是在真支持、控赔、阻上、诱导，还是目前分歧较大。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>当前意图</span><strong>${intent.type}</strong></div>
+            <div class="market-card"><span>判断信心</span><strong>${intent.confidence}%</strong></div>
+            <div class="market-card"><span>爆冷风险</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>多家公司</span><strong>${bookmakerConsensus(m).consistency}%</strong></div>
+          </div>
+          ${table(["判断项", "当前解读"], intent.factors)}
+          <div class="note"><p><b>证据：</b>${intent.evidence.join("；")}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口升降轨迹</h2>
+          <p>操盘角度不能只看当前水位，还要看初盘到临场盘有没有升盘、退盘或维持不动。</p>
+          ${table(["时间", "盘口", "上盘水位", "下盘水位"], timeline.map(x => [x.time, x.line, x.homeWater, x.awayWater]))}
+          <div class="note"><p><b>轨迹解读：</b>${lineMove.meaning}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口合理性评分</h2>
+          <p>这个分数不是判断一定赢，而是判断“当前盘口和水位是否说得通”。分数越高，说明盘口、水位、热度和波胆之间越一致。</p>
+          <div class="two-col">
+            <div>
+              <div class="score-ring" style="--score:${rational.score}"><b>${rational.score}</b></div>
+              <p style="text-align:center">${rational.level}</p>
+            </div>
+            <div class="reason-list">
+              ${rational.reasons.map(r => `<div class="reason"><strong>${r[0]}</strong><span>${r[1]}</span></div>`).join("")}
+            </div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>操盘视角核对</h2>
+          ${table(["检查项", "当前判断", "为什么重要"], [
+            ["盘口是否够深", profile.depth, "强队如果热度高但让球不深，可能说明机构并不完全支持强队大胜。"],
+            ["水位是否顺向", profile.waterDirection, "强队方向降水通常是支持，上盘升水则可能是阻上或信心减弱。"],
+            ["热度是否过高", profile.heatRisk, "大众都追热门时，要防范赔付风险、诱盘和冷门。"],
+            ["爆冷是否有迹象", profile.upsetText, "下盘降水、热门升水、波胆冷门下降，都要提高爆冷权重。"]
+          ])}
+          <div class="note"><p><b>最终逻辑：</b>先用让球水位判断谁更可能占优，再判断这个优势是否被市场过度追捧，最后用波胆热力图和进球数去验证比分范围。</p></div>
+        </section>
+      `;
+      drawLineChart("handicapChart", [
+        { label: "上盘水位", values: timeline.map(x => x.homeWater), color: "#2563eb" },
+        { label: "下盘水位", values: timeline.map(x => x.awayWater), color: "#dc2626" }
+      ], "水位");
+    }
+
+    function renderCollect(m) {
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>赔率怎么采集</h2>
+          <p>现在原型是模拟数据，还没有真的去抓。正式版建议按比赛临近程度动态采集，不是永远固定一个频率。</p>
+          ${table(["时间段", "建议频率", "采集内容"], [
+            ["赛前7天到24小时", "每15分钟一次", "胜平负、大小球、让球、主要波胆"],
+            ["赛前24小时到3小时", "每5分钟一次", "全部常见波胆、让球水位、大小球水位"],
+            ["赛前3小时到开赛", "每1分钟一次", "重点波胆、让球水位、盘口变化、新闻"],
+            ["比赛结束后", "保存最终快照", "用于回测，和真实比分做对比"]
+          ])}
+          <div class="note">
+            <p><b>重点：</b>波胆数据必须全量采集，不能只采热门比分。正式版建议采 0:0 到 5:5，再加其他主胜、其他平局、其他客胜。页面默认用热力图展示，不让用户在一堆表格里迷路。</p>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>后期真实数据结构</h2>
+          ${table(["数据", "例子", "用途"], [
+            ["基础信息", "日期、阶段、主队、客队", "让页面能展示赛程和比赛入口"],
+            ["胜平负概率", "主胜45、平局28、客胜27", "形成基础方向判断"],
+            ["波胆赔率", "1:0、2:0、2:1、1:1", "看具体比分热度变化"],
+            ["让球盘口轨迹", "初盘 -1.25 → 临场 -1.5", "看盘口升盘、退盘或维持不动"],
+            ["让球水位轨迹", "上盘0.92 → 0.80", "看市场压力和风险"],
+            ["大小球/进球数", "0-1球、2-3球、4球以上", "判断比赛节奏偏大球还是小球"],
+            ["采集时间", "T-24h、T-1h、T-10m", "画出波动走势图"],
+            ["新闻消息", "伤停、首发、天气", "解释赔率为什么变"],
+            ["赛后结果", "结算比分、最终结果", "用于回测和自动复盘"]
+          ])}
+        </section>
+        <section class="card section">
+          <h2>2026 单场数据模板</h2>
+          <p>后期拿到 2026 世界杯真实数据后，每场比赛按这个顺序填。先填赛前字段，比赛结束后再补结算比分和最终结果。</p>
+          ${table(["字段", "怎么填", "是否必填"], [
+            ["id", "26001、26002 这种唯一编号", "必填"],
+            ["date / stage", "比赛日期、阶段，如小组赛/淘汰赛/决赛", "必填"],
+            ["home / away", "主队、客队名称", "必填"],
+            ["probs", "主胜、平局、客胜概率，合计尽量接近100", "必填"],
+            ["handicap.timeline", "初盘、T-24h、T-6h、T-1h、临场的盘口和水位", "必填"],
+            ["scoreOdds", "0:0 到 5:5 的波胆赔率，至少先填重点比分", "强烈建议"],
+            ["goals", "0-1球、2-3球、4球以上概率", "必填"],
+            ["news", "伤停、首发、天气、赛程密度", "建议填"],
+            ["actual / finalScore", "赛后再填，actual 是结算比分，finalScore 含加时/点球", "赛后必填"]
+          ])}
+          <div class="note"><p><b>在哪里填：</b>标准样本已经放到 <code>data/matches-2026.js</code> 的 <code>MATCH_2026_TEMPLATE</code> 里，后期复制模板对象到 <code>MATCHES_2026</code> 数组即可。</p></div>
+        </section>
+        <section class="card section">
+          <h2>正式分析流程</h2>
+          ${table(["步骤", "先看什么", "输出什么"], [
+            ["1", "让球盘口和上下盘水位", "判断强队是否真的被支持，还是热门过热"],
+            ["2", "市场热度和关注点", "判断大众资金集中在哪一边，是否存在诱导风险"],
+            ["3", "爆冷潜力", "看下盘降水、热门升水、冷门波胆降赔是否同时出现"],
+            ["4", "全比分波胆热力图", "锁定小胜、大胜、平局、冷门比分区间"],
+            ["5", "进球数和大小球水位", "判断比赛节奏偏大球还是小球"],
+            ["6", "融合计算", "输出胜平负概率、比分概率、进球数概率和置信度"]
+          ])}
+        </section>
+      `;
+    }
+
+    function renderHeatmap(market) {
+      const maxDrop = Math.max(...market.map(x => Math.abs(Math.min(0, x.change))));
+      const maxScore = window.SCORING_CONFIG?.scoreRange?.maxCorrectScore ?? 5;
+      const scoreRange = Array.from({ length: maxScore + 1 }, (_, i) => i);
+      const headers = ["主\\客", ...scoreRange.map(String)];
+      const headHtml = headers.map(h => `<div class="heat-cell header">${h}</div>`).join("");
+      const rows = scoreRange.map(h => {
+        const cells = [(`<div class="heat-cell header">${h}</div>`)];
+        scoreRange.forEach(a => {
+          const item = market.find(x => x.home === h && x.away === a);
+          const level = maxDrop ? Math.min(1, Math.abs(Math.min(0, item.change)) / maxDrop) : 0;
+          const bg = `rgba(37, 99, 235, ${0.08 + level * 0.58})`;
+          const color = level > 0.55 ? "#fff" : "#111827";
+          cells.push(`
+            <div class="heat-cell score ${item.score === selectedScore ? "active" : ""}" onclick="selectScore('${item.score}')" style="background:${bg};color:${color}">
+              <strong>${item.score}</strong>
+              <span style="color:${level > 0.55 ? "rgba(255,255,255,.86)" : "#6b7280"}">赔率 ${item.last} · ${item.change.toFixed(1)}%</span>
+            </div>
+          `);
+        });
+        return cells.join("");
+      }).join("");
+      const others = market.filter(x => x.score.includes("其他")).map(x => `
+        <div class="heat-cell score ${x.score === selectedScore ? "active" : ""}" onclick="selectScore('${x.score}')" style="grid-column: span 2">
+          <strong>${x.score}</strong>
+          <span>赔率 ${x.last} · ${x.change.toFixed(1)}%</span>
+        </div>
+      `).join("");
+      return headHtml + rows + `<div class="heat-cell header">其他</div>` + others;
+    }
+
+    function table(headers, rows) {
+      return `
+        <table>
+          <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      `;
+    }
+
+    function drawLineChart(canvasId, series, yName) {
+      const canvas = $(canvasId);
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 42;
+      const all = series.flatMap(s => s.values);
+      const min = Math.min(...all) * .95;
+      const max = Math.max(...all) * 1.05;
+      const x = i => pad + i * ((w - pad * 2) / (timeLabels.length - 1));
+      const y = v => h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        const yy = pad + i * ((h - pad * 2) / 3);
+        ctx.beginPath();
+        ctx.moveTo(pad, yy);
+        ctx.lineTo(w - pad, yy);
+        ctx.stroke();
+      }
+
+      series.forEach((s, idx) => {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        s.values.forEach((v, i) => i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)));
+        ctx.stroke();
+        s.values.forEach((v, i) => {
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(x(i), y(v), 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.fillStyle = s.color;
+        ctx.font = "13px sans-serif";
+        ctx.fillText(s.label, pad + idx * 110, 24);
+      });
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "12px sans-serif";
+      timeLabels.forEach((label, i) => ctx.fillText(label, x(i) - 18, h - 14));
+      ctx.fillText(yName, 10, 18);
+    }
+
+    $("stageFilter").addEventListener("change", renderOverview);
+    renderOverview();
+  </script>
+</body>
+</html>

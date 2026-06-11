@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>世界杯赔率波动分析原型</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --blue: #2563eb;
+      --green: #059669;
+      --red: #dc2626;
+      --orange: #ea580c;
+      --soft-blue: #eff6ff;
+      --soft-green: #ecfdf5;
+      --soft-red: #fef2f2;
+      --soft-orange: #fff7ed;
+      --shadow: 0 12px 36px rgba(15, 23, 42, .08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .app {
+      width: min(1080px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 18px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 24px; letter-spacing: -.4px; }
+    h2 { font-size: 19px; }
+    h3 { font-size: 15px; }
+    p { color: var(--muted); line-height: 1.55; font-size: 13px; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--muted);
+      background: #fff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.good { color: var(--green); background: var(--soft-green); border-color: #bbf7d0; }
+    .pill.bad { color: var(--red); background: var(--soft-red); border-color: #fecaca; }
+    .pill.warn { color: var(--orange); background: var(--soft-orange); border-color: #fed7aa; }
+    .pill.blue { color: var(--blue); background: var(--soft-blue); border-color: #bfdbfe; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .section {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .summary {
+      padding: 13px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .summary span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .summary strong {
+      font-size: 22px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1.25fr .9fr .9fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .board-card {
+      padding: 14px;
+      min-height: 128px;
+    }
+
+    .board-card h2 {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .board-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .board-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+      cursor: pointer;
+    }
+
+    .board-row strong {
+      font-size: 13px;
+    }
+
+    .board-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    select, button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    button.ghost {
+      background: #fff;
+    }
+
+    .matches {
+      display: grid;
+      gap: 10px;
+    }
+
+    .match {
+      padding: 12px 14px;
+      cursor: pointer;
+    }
+
+    .match-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .match-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .decision-strip {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .decision-item {
+      padding: 10px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+    }
+
+    .decision-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .decision-item strong {
+      font-size: 14px;
+    }
+
+    .title-score {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 8px;
+      padding: 4px 9px;
+      border-radius: 10px;
+      background: var(--soft-blue);
+      color: var(--blue);
+      font-size: 16px;
+      vertical-align: middle;
+    }
+
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .ticket {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #f9fafb;
+    }
+
+    .ticket.recommended {
+      border-color: #bfdbfe;
+      background: var(--soft-blue);
+    }
+
+    .ticket h3 {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .ticket-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(229,231,235,.8);
+      font-size: 13px;
+    }
+
+    .ticket-line:last-child {
+      border-bottom: 0;
+    }
+
+    .ticket-line span {
+      color: var(--muted);
+    }
+
+    .match-head, .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .teams {
+      font-size: 17px;
+      font-weight: 800;
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini {
+      padding: 10px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .mini span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .mini strong {
+      font-size: 14px;
+    }
+
+    .final-card {
+      padding: 16px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: #fff;
+      border: 0;
+    }
+
+    .final-card p {
+      color: rgba(255,255,255,.72);
+    }
+
+    .final-grid {
+      display: grid;
+      grid-template-columns: 1.2fr repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .final-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.09);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .final-item span {
+      color: rgba(255,255,255,.65);
+      font-size: 12px;
+    }
+
+    .final-item strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 6px;
+    }
+
+    .score-ring {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--blue) calc(var(--score) * 1%), #e5e7eb 0);
+      margin: 12px auto 8px;
+    }
+
+    .score-ring b {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+
+    .reason-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .reason {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+      font-size: 13px;
+    }
+
+    .reason span {
+      color: var(--muted);
+    }
+
+    .screen.hidden { display: none; }
+
+    .detail-title {
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .detail-title h2 {
+      font-size: 24px;
+      margin: 8px 0;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+      position: sticky;
+      top: 0;
+      padding: 8px 0;
+      background: rgba(246,247,251,.92);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .tabs button.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    .prob-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .prob {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .prob span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .prob strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 4px;
+    }
+
+    .bar {
+      height: 7px;
+      background: #e5e7eb;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--blue);
+      border-radius: 99px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .chart {
+      width: 100%;
+      height: 260px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      margin-top: 12px;
+    }
+
+    .score-selector {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      margin-top: 12px;
+    }
+
+    .score-selector button {
+      white-space: nowrap;
+      padding: 8px 10px;
+    }
+
+    .score-selector button.active {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .score-cell {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #f9fafb;
+    }
+
+    .score-cell strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .score-cell span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .heatmap-wrap {
+      overflow-x: auto;
+      margin-top: 12px;
+      padding-bottom: 4px;
+    }
+
+    .heatmap {
+      min-width: 720px;
+      display: grid;
+      grid-template-columns: 64px repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .heat-cell {
+      min-height: 58px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .heat-cell.header {
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      align-items: center;
+      text-align: center;
+      min-height: 38px;
+    }
+
+    .heat-cell.score {
+      cursor: pointer;
+    }
+
+    .heat-cell.score.active {
+      outline: 2px solid var(--blue);
+      outline-offset: 1px;
+    }
+
+    .heat-cell strong {
+      font-size: 14px;
+    }
+
+    .heat-cell span {
+      color: #374151;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .market-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .market-card {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .market-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .market-card strong {
+      display: block;
+      font-size: 20px;
+      margin-top: 6px;
+    }
+
+    .note {
+      padding: 12px;
+      background: #f9fafb;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-top: 12px;
+    }
+
+    .note b { color: var(--text); }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .tournament-bar { padding: 14px 16px; }
+
+    .tournament-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .tournament-row h2 { font-size: 18px; }
+
+    .tournament-picker {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 180px;
+    }
+
+    .tournament-picker label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tournament-picker select {
+      padding: 9px 10px;
+      font-size: 13px;
+    }
+
+    .backtest-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .backtest-card {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #f9fafb;
+    }
+
+    .backtest-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .backtest-card strong {
+      display: block;
+      font-size: 22px;
+    }
+
+    .backtest-card p {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    .case-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .case-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .case-row strong {
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 20px, 1080px); padding-top: 12px; }
+      .topbar { align-items: flex-start; }
+      h1 { font-size: 21px; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .board { grid-template-columns: 1fr; }
+      .summary strong { font-size: 20px; }
+      .toolbar { display: grid; grid-template-columns: 1fr; }
+      .tournament-row { grid-template-columns: 1fr; }
+      .tournament-picker { min-width: 0; }
+      .backtest-grid { grid-template-columns: repeat(2, 1fr); }
+      .mini-grid { grid-template-columns: repeat(2, 1fr); }
+      .final-grid { grid-template-columns: 1fr 1fr; }
+      .decision-strip { grid-template-columns: 1fr 1fr; }
+      .ticket-grid { grid-template-columns: 1fr; }
+      .tabs { grid-template-columns: repeat(5, minmax(70px, 1fr)); overflow-x: auto; }
+      .tabs button { padding: 9px 8px; font-size: 12px; white-space: nowrap; }
+      .prob-grid, .two-col { grid-template-columns: 1fr; }
+      .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .market-grid { grid-template-columns: repeat(2, 1fr); }
+      .match-head { align-items: flex-start; }
+      .chart { height: 230px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="overviewScreen" class="screen">
+      <div class="topbar">
+        <div>
+          <h1>赛事总览</h1>
+          <p>先选届别，再看比赛列表，点进每场比赛看赔率、波胆和让球水位。</p>
+        </div>
+        <span class="pill blue" id="topbarPill">回测原型</span>
+      </div>
+
+      <div id="tournamentBar"></div>
+      <div id="crossTournamentDashboard"></div>
+      <div id="dataHealth"></div>
+
+      <div class="summary-grid" id="summaryGrid"></div>
+
+      <div class="board" id="priorityBoard"></div>
+
+      <div id="backtestDashboard"></div>
+
+      <div class="toolbar">
+        <select id="stageFilter">
+          <option value="全部">全部阶段</option>
+          <option value="小组赛">小组赛</option>
+          <option value="淘汰赛">淘汰赛</option>
+          <option value="决赛">决赛</option>
+        </select>
+      </div>
+
+      <div class="topbar">
+        <div>
+          <h2>全部比赛</h2>
+          <p>列表保持紧凑，详细分析点进去看。</p>
+        </div>
+        <span class="pill" id="matchTotal"></span>
+      </div>
+      <div class="matches" id="matches"></div>
+    </section>
+
+    <section id="detailScreen" class="screen hidden">
+      <div class="topbar">
+        <button class="ghost" onclick="goBack()">← 返回赛事总览</button>
+        <span class="pill warn">模拟采集数据</span>
+      </div>
+      <div id="detailTitle"></div>
+      <div class="tabs">
+        <button id="tabOverview" onclick="setTab('overview')">概览</button>
+        <button id="tabRiskScore" onclick="setTab('riskScore')">评分</button>
+        <button id="tabScoreOdds" onclick="setTab('scoreOdds')">波胆</button>
+        <button id="tabHandicap" onclick="setTab('handicap')">让球</button>
+        <button id="tabCollect" onclick="setTab('collect')">采集</button>
+      </div>
+      <div id="detailContent"></div>
+    </section>
+  </main>
+
+  <script src="data/tournaments.js"></script>
+  <script src="data/matches-2018.js"></script>
+  <script src="data/matches-2022.js"></script>
+  <script src="data/matches-2026.js"></script>
+  <script src="engine/config.js"></script>
+  <script src="engine/scoring.js"></script>
+  <script src="engine/backtest.js"></script>
+  <script src="engine/intent.js"></script>
+  <script src="engine/review.js"></script>
+  <script src="engine/model-advice.js"></script>
+  <script src="engine/model-version.js"></script>
+  <script src="engine/cross-tournament.js"></script>
+  <script src="engine/validate.js"></script>
+  <script>
+    // 当前选中的赛事（届别）。以下所有逻辑都从这里读取数据，
+    // 切换届别只改这一处状态，其他评分/UI 逻辑完全不动。
+    const TOURNAMENT_STORAGE_KEY = "selected_tournament_id";
+    let currentTournamentId = localStorage.getItem(TOURNAMENT_STORAGE_KEY)
+      || window.DEFAULT_TOURNAMENT_ID
+      || (window.TOURNAMENTS[0] && window.TOURNAMENTS[0].id);
+
+    function getCurrentTournament() {
+      return window.TOURNAMENTS.find(t => t.id === currentTournamentId) || window.TOURNAMENTS[0];
+    }
+
+    function getMatches() {
+      const t = getCurrentTournament();
+      return (window[t.dataKey] || []).slice();
+    }
+
+    const timeLabels = ["T-24h", "T-12h", "T-6h", "T-1h", "T-10m"];
+    let selectedId = null;
+    let currentTab = "overview";
+    let selectedScore = "2:1";
+
+    const $ = (id) => document.getElementById(id);
+
+    function filteredMatches() {
+      const stageEl = $("stageFilter");
+      const stage = stageEl ? stageEl.value : "全部";
+      const list = getMatches();
+      return stage === "全部" ? list : list.filter(m => m.stage === stage);
+    }
+
+    function changeTournament(id) {
+      currentTournamentId = id;
+      localStorage.setItem(TOURNAMENT_STORAGE_KEY, id);
+      // 切赛事后回到总览页，避免详情页指向旧赛事的比赛
+      $("detailScreen").classList.add("hidden");
+      $("overviewScreen").classList.remove("hidden");
+      selectedId = null;
+      renderOverview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function bestGoal(match) {
+      return [...match.goals].sort((a, b) => b[1] - a[1])[0];
+    }
+
+    function displayResult(m) {
+      // 统一展示已结束比赛的结果：常规无加时只显示一个比分；
+      // 有加时或点球时按《结算比分（最终结果）》格式展示。
+      if (!m.actual) return "";
+      if (m.finalScore && m.finalScore !== m.actual) {
+        return `${m.actual}（${finalResultDetail(m)}）`;
+      }
+      return m.actual;
+    }
+
+    function finalResultDetail(m) {
+      if (!m.finalScore || m.finalScore === m.actual) return "无加时／无点球";
+      return m.finalScore
+        .replace(m.actual, "")
+        .replace(/[()\s（）]/g, "")
+        .replace(/^，/, "");
+    }
+
+    function renderTournamentBar() {
+      const cur = getCurrentTournament();
+      const tList = window.TOURNAMENTS;
+      const statusCls = cur.status === "已结束" ? "good" : cur.status === "进行中" ? "warn" : "blue";
+      const pill = $("topbarPill");
+      if (pill) {
+        pill.textContent = `${cur.short} · ${cur.status}`;
+        pill.className = `pill ${statusCls}`;
+      }
+      $("tournamentBar").innerHTML = `
+        <section class="card section tournament-bar">
+          <div class="tournament-row">
+            <div>
+              <span class="pill ${statusCls}">${cur.status}</span>
+              <h2 style="margin-top:6px">${cur.name}</h2>
+              <p>${cur.description}</p>
+            </div>
+            <div class="tournament-picker">
+              <label>切换赛事</label>
+              <select id="tournamentSelect">
+                ${tList.map(t => `<option value="${t.id}" ${t.id === cur.id ? "selected" : ""}>${t.short} · ${t.status}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+        </section>
+      `;
+      $("tournamentSelect").addEventListener("change", e => changeTournament(e.target.value));
+    }
+
+    function renderEmptyState() {
+      const cur = getCurrentTournament();
+      $("summaryGrid").innerHTML = "";
+      $("priorityBoard").innerHTML = "";
+      $("backtestDashboard").innerHTML = "";
+      $("dataHealth").innerHTML = "";
+      $("matchTotal").textContent = "0 场";
+      $("matches").innerHTML = `
+        <section class="card section">
+          <h2>${cur.name}暂无比赛数据</h2>
+          <p>${cur.status === "未开始"
+            ? "这一届赛事还没有可用的盘口数据。等抽签和初盘出来后，按 matches-2022.js 的字段结构填入 " + cur.dataKey + " 即可，分析流程一行代码都不用改。"
+            : "当前赛事的数据文件是空的，请检查 " + cur.dataKey + " 是否正确填充。"}</p>
+          <div class="note"><p><b>提醒：</b>你可以在右上角“切换赛事”选择已有的届别，先继续完善分析方法。</p></div>
+        </section>
+      `;
+    }
+
+    function renderOverview() {
+      renderTournamentBar();
+      renderCrossTournamentDashboard();
+      const list = filteredMatches();
+      if (!list.length) {
+        renderEmptyState();
+        return;
+      }
+      renderDataHealth(list);
+      const scored = list.map(m => ({
+        match: m,
+        risk: riskControlScore(m),
+        profile: handicapProfile(m),
+        final: finalPrediction(m),
+        intent: getLineIntent(m)
+      }));
+      const focus = scored.filter(x => x.risk.total >= 72).length;
+      const wait = scored.filter(x => x.risk.total >= 55 && x.risk.total < 72).length;
+      const filter = scored.filter(x => x.risk.total < 55).length;
+      const highUpset = scored.filter(x => x.profile.upset > 60).length;
+
+      $("summaryGrid").innerHTML = [
+        ["重点跟踪", `${focus}场`],
+        ["等待确认", `${wait}场`],
+        ["建议过滤", `${filter}场`],
+        ["高冷门", `${highUpset}场`]
+      ].map(([k, v]) => `<div class="summary"><span>${k}</span><strong>${v}</strong></div>`).join("");
+
+      renderPriorityBoard(scored);
+      renderBacktestDashboard(list);
+      $("matchTotal").textContent = `${list.length} 场`;
+
+      $("matches").innerHTML = scored.map(({ match: m, risk, profile, final, intent }) => {
+        const goal = bestGoal(m);
+        return `
+          <article class="card match" onclick="openMatch(${m.id})">
+            <div class="match-line">
+              <div>
+                <div class="teams">${m.home} vs ${m.away}</div>
+                <div class="match-meta">
+                  <span class="pill">${m.date}</span>
+                  <span class="pill">${m.stage}</span>
+                  <span class="pill ${risk.total >= 72 ? "good" : risk.total >= 55 ? "warn" : "bad"}">${risk.action}</span>
+                </div>
+              </div>
+              <span class="pill ${profile.upset > 60 ? "warn" : "blue"}">冷门 ${profile.upset}%</span>
+            </div>
+            <div class="decision-strip">
+              <div class="decision-item"><span>风控分</span><strong>${risk.total} · ${risk.riskLevel}</strong></div>
+              <div class="decision-item"><span>方向</span><strong>${final.direction}</strong></div>
+              <div class="decision-item"><span>盘口意图</span><strong>${intent.type}</strong></div>
+              <div class="decision-item"><span>比分</span><strong>${final.scoreZone.split(" / ")[0]}</strong></div>
+              <div class="decision-item"><span>进球</span><strong>${goal[0]}</strong></div>
+              <div class="decision-item"><span>最终比分</span><strong>${displayResult(m) || "未结束"}</strong></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderCrossTournamentDashboard() {
+      const cross = crossTournamentStats(window.TOURNAMENTS);
+      if (!cross.total) {
+        $("crossTournamentDashboard").innerHTML = "";
+        return;
+      }
+      $("crossTournamentDashboard").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>跨届汇总看板</h2>
+              <p>把已结束的世界杯样本合在一起看，判断模型问题是单届偶然，还是跨届反复出现。</p>
+            </div>
+            <span class="pill blue">${cross.total} 场历史样本</span>
+          </div>
+          <div class="note"><p><b>跨届结论：</b>${cross.conclusion}</p></div>
+          ${table(["指标", "结果"], cross.overviewRows)}
+          <h3 style="margin-top:14px">各届表现</h3>
+          ${table(["届别", "样本", "方向命中", "比分覆盖", "进球命中", "冷门预警"], cross.tournamentRows)}
+          <h3 style="margin-top:14px">跨届高频问题</h3>
+          ${table(["问题", "出现", "代表比赛"], cross.recurringRows)}
+          <h3 style="margin-top:14px">跨届调优方向</h3>
+          ${table(["问题", "出现", "紧急度", "建议方向"], cross.adviceRows)}
+        </section>
+      `;
+    }
+
+    function renderDataHealth(list) {
+      const health = validateTournament(list);
+      const cls = health.ok ? "good" : "bad";
+      const title = health.ok ? "数据检查通过" : "数据需要修正";
+      const text = health.ok
+        ? `当前 ${health.total} 场比赛关键字段完整，可以正常分析。${health.totalWarnings ? "有 " + health.totalWarnings + " 个提醒，不影响页面打开。" : ""}`
+        : `发现 ${health.totalErrors} 个错误、${health.totalWarnings} 个提醒。后期接 2026 真实数据时，先修正错误再分析。`;
+      const issueRows = health.results
+        .filter(x => x.issues.length)
+        .slice(0, 5)
+        .map(x => [
+          `${x.match.home || "未知主队"} vs ${x.match.away || "未知客队"}`,
+          x.issues.map(i => `${i.level}：${i.message}`).join("；")
+        ]);
+      $("dataHealth").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>数据检查</h2>
+              <p>${text}</p>
+            </div>
+            <span class="pill ${cls}">${title}</span>
+          </div>
+          ${issueRows.length ? table(["比赛", "问题"], issueRows) : ""}
+        </section>
+      `;
+    }
+
+    function renderBacktestDashboard(list) {
+      const stats = backtestStats(list);
+      const review = reviewTournament(list);
+      const advice = modelAdvice(list);
+      const version = compareModelVersions(list);
+      if (!stats.total) {
+        $("backtestDashboard").innerHTML = "";
+        return;
+      }
+      $("backtestDashboard").innerHTML = `
+        <section class="card section">
+          <div class="row">
+            <div>
+              <h2>回测仪表盘</h2>
+              <p>用已经结束的比赛验证这套风控体系：不是只看猜对几场，而是看“高分场是否更稳、冷门预警是否有用、比分和进球区间是否合理”。</p>
+            </div>
+            <span class="pill blue">${stats.total} 场已回测</span>
+          </div>
+          <div class="backtest-grid">
+            <div class="backtest-card"><span>方向命中率</span><strong>${stats.directionRate}</strong><p>胜平负/不败方向是否命中</p></div>
+            <div class="backtest-card"><span>比分区间命中</span><strong>${stats.scoreRate}</strong><p>候选比分是否包含实际比分</p></div>
+            <div class="backtest-card"><span>进球区间命中</span><strong>${stats.goalRate}</strong><p>0-1 / 2-3 / 4+ 是否命中</p></div>
+            <div class="backtest-card"><span>冷门预警有效</span><strong>${stats.upsetWarnRate}</strong><p>高冷门提示是否真的发生反向结果</p></div>
+          </div>
+          <div class="note"><p><b>风控分验证：</b>重点跟踪命中率 ${stats.focusRate}；等待确认命中率 ${stats.waitRate}；建议过滤命中率 ${stats.filterRate}。如果重点跟踪长期不高，说明评分权重需要回炉重调。</p></div>
+          <h3 style="margin-top:14px">复盘原因分布</h3>
+          ${table(["主要原因", "次数", "代表比赛"], review.summary.map(x => [x.reason, x.count + "次", x.matches.slice(0, 3).join(" / ")]))}
+          <h3 style="margin-top:14px">模型复盘建议</h3>
+          <div class="note"><p><b>当前判断：</b>${advice.headline}</p></div>
+          ${table(["问题", "出现", "紧急度", "建议调整", "说明"], advice.rows)}
+          <h3 style="margin-top:14px">模型版本对比</h3>
+          <div class="note"><p><b>对比结论：</b>${version.verdict}</p></div>
+          ${table(["指标", "当前模型", "建议版模拟", "说明"], version.summary)}
+          ${table(["比赛", "当前方向", "建议版处理", "比分", "进球", "原因"], version.rows.slice(0, 6))}
+          ${stats.missRows.length ? `
+            <h3 style="margin-top:14px">需要复盘的比赛</h3>
+            <div class="case-list">
+              ${stats.missRows.slice(0, 4).map(x => `
+                <div class="case-row" onclick="openMatch(${x.match.id})">
+                  <div>
+                    <strong>${x.match.home} vs ${x.match.away}</strong>
+                    <p>实际 ${displayResult(x.match)}；系统方向 ${x.final.direction}；冷门预警 ${x.warnedUpset ? "有" : "无"}</p>
+                  </div>
+                  <span class="pill ${x.directionHit ? "warn" : "bad"}">${x.directionHit ? "预警复盘" : "方向失手"}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<div class="note"><p><b>当前结果：</b>没有明显失手样本，但样本数还少，不能过早下结论。</p></div>`}
+        </section>
+      `;
+    }
+
+    function renderPriorityBoard(scored) {
+      const focus = [...scored].sort((a, b) => b.risk.total - a.risk.total).slice(0, 2);
+      const upset = [...scored].sort((a, b) => b.profile.upset - a.profile.upset).slice(0, 2);
+      const filter = [...scored].sort((a, b) => a.risk.total - b.risk.total).slice(0, 2);
+      $("priorityBoard").innerHTML = [
+        boardCard("重点跟踪", focus, "good", x => `${x.risk.total}分 · ${x.intent.type} · ${x.final.direction}`),
+        boardCard("冷门预警", upset, "warn", x => `冷门 ${x.profile.upset}% · ${x.intent.type}`),
+        boardCard("建议过滤", filter, "bad", x => `${x.risk.total}分 · ${x.intent.type}`)
+      ].join("");
+    }
+
+    function boardCard(title, items, type, descFn) {
+      return `
+        <section class="card board-card">
+          <h2>${title}<span class="pill ${type}">${items.length}</span></h2>
+          <div class="board-list">
+            ${items.map(x => `
+              <div class="board-row" onclick="openMatch(${x.match.id})">
+                <div><strong>${x.match.home} vs ${x.match.away}</strong><span>${descFn(x)}</span></div>
+                <span class="pill">${x.match.stage}</span>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function openMatch(id) {
+      selectedId = id;
+      const match = getMatch();
+      selectedScore = match.scoreProb[0][0];
+      currentTab = "overview";
+      $("overviewScreen").classList.add("hidden");
+      $("detailScreen").classList.remove("hidden");
+      renderDetail();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBack() {
+      $("detailScreen").classList.add("hidden");
+      $("overviewScreen").classList.remove("hidden");
+      renderOverview();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function getMatch() {
+      return getMatches().find(m => m.id === selectedId);
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+      renderDetail();
+    }
+
+    function renderDetail() {
+      const m = getMatch();
+      const risk = riskControlScore(m);
+      const profile = handicapProfile(m);
+      const final = finalPrediction(m);
+      const riskCls = risk.total >= 72 ? "good" : risk.total >= 55 ? "warn" : "bad";
+      $("detailTitle").innerHTML = `
+        <section class="card detail-title">
+          <div class="match-head">
+            <div>
+              <span class="pill blue">${m.date} · ${m.stage}</span>
+              <h2>${m.home} vs ${m.away}${displayResult(m) ? `<span class="title-score">${displayResult(m)}</span>` : ""}</h2>
+            </div>
+            <span class="pill ${riskCls}">${risk.action}</span>
+          </div>
+          <div class="decision-strip">
+            <div class="decision-item"><span>风控分</span><strong>${risk.total} · ${risk.riskLevel}</strong></div>
+            <div class="decision-item"><span>推荐处理</span><strong>${risk.action}</strong></div>
+            <div class="decision-item"><span>主方向</span><strong>${final.direction}</strong></div>
+            <div class="decision-item"><span>冷门风险</span><strong>${profile.upset}%</strong></div>
+            <div class="decision-item"><span>最终比分</span><strong>${displayResult(m) || "比赛未开始"}</strong></div>
+          </div>
+        </section>
+      `;
+
+      ["overview", "riskScore", "scoreOdds", "handicap", "collect"].forEach(t => {
+        $("tab" + t[0].toUpperCase() + t.slice(1)).classList.toggle("active", currentTab === t);
+      });
+
+      if (currentTab === "riskScore") return renderRiskScore(m);
+      if (currentTab === "scoreOdds") return renderScoreOdds(m);
+      if (currentTab === "handicap") return renderHandicap(m);
+      if (currentTab === "collect") return renderCollect(m);
+      renderMatchOverview(m);
+    }
+
+    function renderMatchOverview(m) {
+      const profile = handicapProfile(m);
+      const hotScore = fullScoreMarket(m).sort((a, b) => a.change - b.change)[0];
+      const final = finalPrediction(m);
+      const plan = bettingReferencePlan(m);
+      const live = liveConfirmation(m);
+      const review = m.actual ? reviewMatch(m) : null;
+      $("detailContent").innerHTML = `
+        <section class="card final-card">
+          <h2>单场结论</h2>
+          <p>先给处理建议，再看细节。这里不是鼓励每场都参与，而是帮你快速判断“跟踪、等待、过滤”。</p>
+          <div class="final-grid">
+            <div class="final-item"><span>处理建议</span><strong>${riskControlScore(m).action}</strong></div>
+            <div class="final-item"><span>候选比分</span><strong>${final.scoreZone}</strong></div>
+            <div class="final-item"><span>进球数</span><strong>${final.goalZone}</strong></div>
+            <div class="final-item"><span>信心分</span><strong>${final.confidence}%</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>风控参考方案</h2>
+          <p>这里是分析后的候选方向，不是保证结果。真正是否执行，要等临场盘口、首发和多家公司一致性确认。</p>
+          <div class="ticket-grid">
+            <div class="ticket recommended">
+              <h3>主方案 <span class="pill blue">${plan.main.grade}</span></h3>
+              <div class="ticket-line"><span>胜平负</span><strong>${plan.main.result}</strong></div>
+              <div class="ticket-line"><span>比分</span><strong>${plan.main.scores}</strong></div>
+              <div class="ticket-line"><span>进球数</span><strong>${plan.main.goals}</strong></div>
+              <div class="ticket-line"><span>让球倾向</span><strong>${plan.main.handicap}</strong></div>
+            </div>
+            <div class="ticket">
+              <h3>防守方案 <span class="pill warn">${plan.cover.grade}</span></h3>
+              <div class="ticket-line"><span>胜平负</span><strong>${plan.cover.result}</strong></div>
+              <div class="ticket-line"><span>比分</span><strong>${plan.cover.scores}</strong></div>
+              <div class="ticket-line"><span>进球数</span><strong>${plan.cover.goals}</strong></div>
+              <div class="ticket-line"><span>用途</span><strong>${plan.cover.usage}</strong></div>
+            </div>
+          </div>
+          <div class="note"><p><b>提醒：</b>如果风控结论是“等临场确认”或“建议过滤”，主方案只作为观察，不建议提前下结论。</p></div>
+        </section>
+        <section class="card section">
+          <h2>临场确认</h2>
+          <p>所谓“等临场确认”，就是开赛前 3 小时到 10 分钟这段时间，盘口、水位、波胆、首发可能会集中变化。</p>
+          ${table(["临场变化", "如果出现", "处理"], live.map(x => [x.name, x.condition, x.action]))}
+        </section>
+        <section class="card section">
+          <h2>先看盘口结论</h2>
+          <p>按照你的思路，系统先从让球水位判断强弱和冷门，再把波胆、进球数和胜平负合并计算。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>更占优方向</span><strong>${m.predict}</strong></div>
+            <div class="market-card"><span>让球信号</span><strong>${profile.signal}</strong></div>
+            <div class="market-card"><span>爆冷潜力</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>最热波胆</span><strong>${hotScore.score}</strong></div>
+          </div>
+        </section>
+        ${m.actual ? `
+        <section class="card section">
+          <h2>比赛结果对比</h2>
+          <p>结算比分按博彩公司常规时间结算，最终结果包含加时与点球。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>结算比分</span><strong>${m.actual}</strong></div>
+            <div class="market-card"><span>最终结果</span><strong>${finalResultDetail(m)}</strong></div>
+            <div class="market-card"><span>预测方向</span><strong>${m.predict}</strong></div>
+            <div class="market-card"><span>预测是否命中</span><strong>${m.resultCorrect ? "命中" : "未命中"}</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>赛后自动复盘</h2>
+          <p>这里不是简单说“对了”或“错了”，而是把赛前判断和真实结果对比，找出下一次需要修正的地方。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>复盘状态</span><strong>${review.status}</strong></div>
+            <div class="market-card"><span>主要原因</span><strong>${review.mainReason}</strong></div>
+            <div class="market-card"><span>比分区间</span><strong>${review.scoreZoneHit ? "命中" : "未命中"}</strong></div>
+            <div class="market-card"><span>进球区间</span><strong>${review.goalZoneHit ? "命中" : "未命中"}</strong></div>
+          </div>
+          ${table(["复盘项", "结果"], review.rows)}
+          ${table(["可能原因", "证据", "下次怎么修正"], review.reasons.map(r => [r.label, r.evidence, r.suggestion]))}
+          <div class="note"><p><b>复盘结论：</b>${review.conclusion}</p></div>
+        </section>` : ""}
+        <section class="card section">
+          <h2>比赛核心判断</h2>
+          <p>页面保持简单，但信息不能少。这里先看胜平负、比分、进球数三个核心结论。</p>
+          <div class="prob-grid">
+            <div class="prob"><span>${m.home}胜</span><strong>${m.probs.home}%</strong><div class="bar"><i style="width:${m.probs.home}%"></i></div></div>
+            <div class="prob"><span>平局</span><strong>${m.probs.draw}%</strong><div class="bar"><i style="width:${m.probs.draw}%"></i></div></div>
+            <div class="prob"><span>${m.away}胜</span><strong>${m.probs.away}%</strong><div class="bar"><i style="width:${m.probs.away}%"></i></div></div>
+          </div>
+        </section>
+        <section class="card section two-col">
+          <div>
+            <h2>比分概率</h2>
+            ${table(["比分", "概率"], m.scoreProb.map(x => [x[0], x[1] + "%"]))}
+          </div>
+          <div>
+            <h2>进球数概率</h2>
+            ${table(["进球数", "概率"], m.goals.map(x => [x[0], x[1] + "%"]))}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderScoreOdds(m) {
+      const market = fullScoreMarket(m);
+      const heatSummary = scoreHeatSummary(m);
+      const scores = market.map(x => x.score);
+      if (!scores.includes(selectedScore)) selectedScore = scores[0];
+      const selected = market.find(x => x.score === selectedScore);
+      const hotScores = [...market].sort((a, b) => a.change - b.change).slice(0, 6);
+      const maxScore = window.SCORING_CONFIG?.scoreRange?.maxCorrectScore ?? 5;
+      const heatmapColumns = `64px repeat(${maxScore + 1}, 1fr)`;
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>波胆赔率波动</h2>
+          <p>这里不只看几个热门比分，而是把 0:0 到 5:5、其他主胜、其他平局、其他客胜都纳入。颜色越深，代表这个比分赔率下降越明显，市场关注度越高。</p>
+          <div class="heatmap-wrap">
+            <div class="heatmap" style="grid-template-columns:${heatmapColumns};">
+              ${renderHeatmap(market)}
+            </div>
+          </div>
+          <div class="score-selector">
+            ${hotScores.map(x => `<button class="${x.score === selectedScore ? "active" : ""}" onclick="selectScore('${x.score}')">${x.score}</button>`).join("")}
+          </div>
+          <canvas id="scoreChart" class="chart" width="720" height="300"></canvas>
+          <div class="score-grid">
+            ${hotScores.map(x => {
+              const cls = x.change < -12 ? "good" : x.change < 0 ? "blue" : "warn";
+              return `<div class="score-cell"><strong>${x.score}</strong><span>当前 ${x.last} · 变化 <span class="pill ${cls}">${x.change.toFixed(1)}%</span></span></div>`;
+            }).join("")}
+          </div>
+          <div class="note">
+            <p><b>怎么看：</b>单个比分下降只能说明“这个点变热”，如果一组相邻比分一起下降，比如 1:0、2:0、2:1 同时下降，才说明市场对某一方小胜或大胜有连续预期。爆冷比分如果持续下降，要重点标记。</p>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>波胆热区总结</h2>
+          <p>${heatSummary.plainText}</p>
+          ${table(["热区", "当前信号"], heatSummary.groups)}
+          <div class="note"><p><b>大白话：</b>波胆热区不是让你只盯一个比分，而是看一片比分是不是一起变热。如果主胜比分一起热，说明主队方向更受关注；如果平局或客胜比分也热，就要防平或防冷。</p></div>
+        </section>
+      `;
+      drawLineChart("scoreChart", [{ label: selectedScore + " 波胆", values: selected.values, color: "#2563eb" }], "赔率");
+    }
+
+    function renderRiskScore(m) {
+      const score = riskControlScore(m);
+      const consensus = bookmakerConsensus(m);
+      $("detailContent").innerHTML = `
+        <section class="card final-card">
+          <h2>风控总评分</h2>
+          <p>这个评分不是判断谁稳赢，而是判断这场比赛是否值得深入跟踪，风险是否可控，盘口信号是否真实。</p>
+          <div class="final-grid">
+            <div class="final-item"><span>风控结论</span><strong>${score.action}</strong></div>
+            <div class="final-item"><span>综合评分</span><strong>${score.total}</strong></div>
+            <div class="final-item"><span>多家公司一致性</span><strong>${consensus.consistency}%</strong></div>
+            <div class="final-item"><span>风险等级</span><strong>${score.riskLevel}</strong></div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>评分拆解</h2>
+          <p>我们先按这个权重跑原型。后面接真实历史数据后，再用回测结果调整每项权重。</p>
+          ${table(["评分项", "权重", "得分", "说明"], score.parts.map(x => [x.name, x.weight + "%", x.score, x.note]))}
+        </section>
+        <section class="card section">
+          <h2>多家公司盘口对比</h2>
+          <p>如果只有一家变动，信号价值有限；如果多家公司同方向变化，信号更可靠。</p>
+          ${table(["公司", "盘口", "上盘水位", "下盘水位", "方向"], consensus.books.map(b => [b.name, b.line, b.homeWater, b.awayWater, b.signal]))}
+          <div class="note"><p><b>核对重点：</b>${consensus.comment}</p></div>
+        </section>
+        <section class="card section">
+          <h2>反向风险</h2>
+          ${table(["风险", "当前状态", "处理方式"], score.reverseRisks)}
+          <div class="note"><p><b>原则：</b>我们的目标不是每场都参与，而是过滤掉风险不舒服的比赛，只保留信号清晰、价格有价值、风险可控的场次。</p></div>
+        </section>
+      `;
+    }
+
+    function selectScore(score) {
+      selectedScore = score;
+      renderScoreOdds(getMatch());
+    }
+
+    function renderHandicap(m) {
+      const profile = handicapProfile(m);
+      const rational = handicapRationality(m);
+      const timeline = handicapTimeline(m);
+      const lineMove = lineMovementSummary(m);
+      const plain = handicapPlainExplanation(m);
+      const intent = getLineIntent(m);
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>让球水位波动</h2>
+          <p>你的思路是对的：先看让球水位。因为它更像市场对强弱关系的“真实表态”，再用波胆、进球数和新闻去核对它是否合理。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>初盘</span><strong>${lineMove.opening}</strong></div>
+            <div class="market-card"><span>临场盘</span><strong>${lineMove.closing}</strong></div>
+            <div class="market-card"><span>盘口变化</span><strong>${lineMove.movement}</strong></div>
+            <div class="market-card"><span>盘口幅度</span><strong>${lineMove.movementValue}</strong></div>
+          </div>
+          <div class="market-grid" style="margin-top:8px">
+            <div class="market-card"><span>水位信号</span><strong>${profile.signal}</strong></div>
+            <div class="market-card"><span>市场热度</span><strong>${profile.heat}%</strong></div>
+            <div class="market-card"><span>爆冷潜力</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>盘口状态</span><strong>${lineMove.movement}</strong></div>
+          </div>
+          <canvas id="handicapChart" class="chart" width="720" height="300"></canvas>
+          <div class="note"><p><b>本场解读：</b>${m.handicap.signal}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口水位白话解释</h2>
+          <p>${plain.headline}</p>
+          ${table(["看什么", "表达了什么"], plain.items)}
+          <div class="note"><p><b>一句话：</b>${plain.conclusion}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口意图判断</h2>
+          <p>这里开始从操盘手角度判断：机构这样调盘口和水位，可能是在真支持、控赔、阻上、诱导，还是目前分歧较大。</p>
+          <div class="market-grid">
+            <div class="market-card"><span>当前意图</span><strong>${intent.type}</strong></div>
+            <div class="market-card"><span>判断信心</span><strong>${intent.confidence}%</strong></div>
+            <div class="market-card"><span>爆冷风险</span><strong>${profile.upset}%</strong></div>
+            <div class="market-card"><span>多家公司</span><strong>${bookmakerConsensus(m).consistency}%</strong></div>
+          </div>
+          ${table(["判断项", "当前解读"], intent.factors)}
+          <div class="note"><p><b>证据：</b>${intent.evidence.join("；")}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口升降轨迹</h2>
+          <p>操盘角度不能只看当前水位，还要看初盘到临场盘有没有升盘、退盘或维持不动。</p>
+          ${table(["时间", "盘口", "上盘水位", "下盘水位"], timeline.map(x => [x.time, x.line, x.homeWater, x.awayWater]))}
+          <div class="note"><p><b>轨迹解读：</b>${lineMove.meaning}</p></div>
+        </section>
+        <section class="card section">
+          <h2>盘口合理性评分</h2>
+          <p>这个分数不是判断一定赢，而是判断“当前盘口和水位是否说得通”。分数越高，说明盘口、水位、热度和波胆之间越一致。</p>
+          <div class="two-col">
+            <div>
+              <div class="score-ring" style="--score:${rational.score}"><b>${rational.score}</b></div>
+              <p style="text-align:center">${rational.level}</p>
+            </div>
+            <div class="reason-list">
+              ${rational.reasons.map(r => `<div class="reason"><strong>${r[0]}</strong><span>${r[1]}</span></div>`).join("")}
+            </div>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>操盘视角核对</h2>
+          ${table(["检查项", "当前判断", "为什么重要"], [
+            ["盘口是否够深", profile.depth, "强队如果热度高但让球不深，可能说明机构并不完全支持强队大胜。"],
+            ["水位是否顺向", profile.waterDirection, "强队方向降水通常是支持，上盘升水则可能是阻上或信心减弱。"],
+            ["热度是否过高", profile.heatRisk, "大众都追热门时，要防范赔付风险、诱盘和冷门。"],
+            ["爆冷是否有迹象", profile.upsetText, "下盘降水、热门升水、波胆冷门下降，都要提高爆冷权重。"]
+          ])}
+          <div class="note"><p><b>最终逻辑：</b>先用让球水位判断谁更可能占优，再判断这个优势是否被市场过度追捧，最后用波胆热力图和进球数去验证比分范围。</p></div>
+        </section>
+      `;
+      drawLineChart("handicapChart", [
+        { label: "上盘水位", values: timeline.map(x => x.homeWater), color: "#2563eb" },
+        { label: "下盘水位", values: timeline.map(x => x.awayWater), color: "#dc2626" }
+      ], "水位");
+    }
+
+    function renderCollect(m) {
+      $("detailContent").innerHTML = `
+        <section class="card section">
+          <h2>赔率怎么采集</h2>
+          <p>现在原型是模拟数据，还没有真的去抓。正式版建议按比赛临近程度动态采集，不是永远固定一个频率。</p>
+          ${table(["时间段", "建议频率", "采集内容"], [
+            ["赛前7天到24小时", "每15分钟一次", "胜平负、大小球、让球、主要波胆"],
+            ["赛前24小时到3小时", "每5分钟一次", "全部常见波胆、让球水位、大小球水位"],
+            ["赛前3小时到开赛", "每1分钟一次", "重点波胆、让球水位、盘口变化、新闻"],
+            ["比赛结束后", "保存最终快照", "用于回测，和真实比分做对比"]
+          ])}
+          <div class="note">
+            <p><b>重点：</b>波胆数据必须全量采集，不能只采热门比分。正式版建议采 0:0 到 5:5，再加其他主胜、其他平局、其他客胜。页面默认用热力图展示，不让用户在一堆表格里迷路。</p>
+          </div>
+        </section>
+        <section class="card section">
+          <h2>后期真实数据结构</h2>
+          ${table(["数据", "例子", "用途"], [
+            ["基础信息", "日期、阶段、主队、客队", "让页面能展示赛程和比赛入口"],
+            ["胜平负概率", "主胜45、平局28、客胜27", "形成基础方向判断"],
+            ["波胆赔率", "1:0、2:0、2:1、1:1", "看具体比分热度变化"],
+            ["让球盘口轨迹", "初盘 -1.25 → 临场 -1.5", "看盘口升盘、退盘或维持不动"],
+            ["让球水位轨迹", "上盘0.92 → 0.80", "看市场压力和风险"],
+            ["大小球/进球数", "0-1球、2-3球、4球以上", "判断比赛节奏偏大球还是小球"],
+            ["采集时间", "T-24h、T-1h、T-10m", "画出波动走势图"],
+            ["新闻消息", "伤停、首发、天气", "解释赔率为什么变"],
+            ["赛后结果", "结算比分、最终结果", "用于回测和自动复盘"]
+          ])}
+        </section>
+        <section class="card section">
+          <h2>2026 单场数据模板</h2>
+          <p>后期拿到 2026 世界杯真实数据后，每场比赛按这个顺序填。先填赛前字段，比赛结束后再补结算比分和最终结果。</p>
+          ${table(["字段", "怎么填", "是否必填"], [
+            ["id", "26001、26002 这种唯一编号", "必填"],
+            ["date / stage", "比赛日期、阶段，如小组赛/淘汰赛/决赛", "必填"],
+            ["home / away", "主队、客队名称", "必填"],
+            ["probs", "主胜、平局、客胜概率，合计尽量接近100", "必填"],
+            ["handicap.timeline", "初盘、T-24h、T-6h、T-1h、临场的盘口和水位", "必填"],
+            ["scoreOdds", "0:0 到 5:5 的波胆赔率，至少先填重点比分", "强烈建议"],
+            ["goals", "0-1球、2-3球、4球以上概率", "必填"],
+            ["news", "伤停、首发、天气、赛程密度", "建议填"],
+            ["actual / finalScore", "赛后再填，actual 是结算比分，finalScore 含加时/点球", "赛后必填"]
+          ])}
+          <div class="note"><p><b>在哪里填：</b>标准样本已经放到 <code>data/matches-2026.js</code> 的 <code>MATCH_2026_TEMPLATE</code> 里，后期复制模板对象到 <code>MATCHES_2026</code> 数组即可。</p></div>
+        </section>
+        <section class="card section">
+          <h2>正式分析流程</h2>
+          ${table(["步骤", "先看什么", "输出什么"], [
+            ["1", "让球盘口和上下盘水位", "判断强队是否真的被支持，还是热门过热"],
+            ["2", "市场热度和关注点", "判断大众资金集中在哪一边，是否存在诱导风险"],
+            ["3", "爆冷潜力", "看下盘降水、热门升水、冷门波胆降赔是否同时出现"],
+            ["4", "全比分波胆热力图", "锁定小胜、大胜、平局、冷门比分区间"],
+            ["5", "进球数和大小球水位", "判断比赛节奏偏大球还是小球"],
+            ["6", "融合计算", "输出胜平负概率、比分概率、进球数概率和置信度"]
+          ])}
+        </section>
+      `;
+    }
+
+    function renderHeatmap(market) {
+      const maxDrop = Math.max(...market.map(x => Math.abs(Math.min(0, x.change))));
+      const maxScore = window.SCORING_CONFIG?.scoreRange?.maxCorrectScore ?? 5;
+      const scoreRange = Array.from({ length: maxScore + 1 }, (_, i) => i);
+      const headers = ["主\\客", ...scoreRange.map(String)];
+      const headHtml = headers.map(h => `<div class="heat-cell header">${h}</div>`).join("");
+      const rows = scoreRange.map(h => {
+        const cells = [(`<div class="heat-cell header">${h}</div>`)];
+        scoreRange.forEach(a => {
+          const item = market.find(x => x.home === h && x.away === a);
+          const level = maxDrop ? Math.min(1, Math.abs(Math.min(0, item.change)) / maxDrop) : 0;
+          const bg = `rgba(37, 99, 235, ${0.08 + level * 0.58})`;
+          const color = level > 0.55 ? "#fff" : "#111827";
+          cells.push(`
+            <div class="heat-cell score ${item.score === selectedScore ? "active" : ""}" onclick="selectScore('${item.score}')" style="background:${bg};color:${color}">
+              <strong>${item.score}</strong>
+              <span style="color:${level > 0.55 ? "rgba(255,255,255,.86)" : "#6b7280"}">赔率 ${item.last} · ${item.change.toFixed(1)}%</span>
+            </div>
+          `);
+        });
+        return cells.join("");
+      }).join("");
+      const others = market.filter(x => x.score.includes("其他")).map(x => `
+        <div class="heat-cell score ${x.score === selectedScore ? "active" : ""}" onclick="selectScore('${x.score}')" style="grid-column: span 2">
+          <strong>${x.score}</strong>
+          <span>赔率 ${x.last} · ${x.change.toFixed(1)}%</span>
+        </div>
+      `).join("");
+      return headHtml + rows + `<div class="heat-cell header">其他</div>` + others;
+    }
+
+    function table(headers, rows) {
+      return `
+        <table>
+          <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+          <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+      `;
+    }
+
+    function drawLineChart(canvasId, series, yName) {
+      const canvas = $(canvasId);
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 42;
+      const all = series.flatMap(s => s.values);
+      const min = Math.min(...all) * .95;
+      const max = Math.max(...all) * 1.05;
+      const x = i => pad + i * ((w - pad * 2) / (timeLabels.length - 1));
+      const y = v => h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        const yy = pad + i * ((h - pad * 2) / 3);
+        ctx.beginPath();
+        ctx.moveTo(pad, yy);
+        ctx.lineTo(w - pad, yy);
+        ctx.stroke();
+      }
+
+      series.forEach((s, idx) => {
+        ctx.strokeStyle = s.color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        s.values.forEach((v, i) => i ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)));
+        ctx.stroke();
+        s.values.forEach((v, i) => {
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(x(i), y(v), 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.fillStyle = s.color;
+        ctx.font = "13px sans-serif";
+        ctx.fillText(s.label, pad + idx * 110, 24);
+      });
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "12px sans-serif";
+      timeLabels.forEach((label, i) => ctx.fillText(label, x(i) - 18, h - 14));
+      ctx.fillText(yName, 10, 18);
+    }
+
+    $("stageFilter").addEventListener("change", renderOverview);
+    renderOverview();
+  </script>
+</body>
+</html>
