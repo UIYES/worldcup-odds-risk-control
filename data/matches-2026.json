@@ -1,0 +1,46 @@
+[
+  {
+    "id": 26001,
+    "date": "2026-06-11",
+    "stage": "小组赛",
+    "home": "（待自动抓取）",
+    "away": "（待自动抓取）",
+    "actual": "",
+    "finalScore": "",
+    "predict": "等待自动数据",
+    "confidence": 0,
+    "resultCorrect": false,
+    "probs": {
+      "home": 0,
+      "draw": 0,
+      "away": 0
+    },
+    "goals": [
+      [
+        "0-1球",
+        0
+      ],
+      [
+        "2-3球",
+        0
+      ],
+      [
+        "4球以上",
+        0
+      ]
+    ],
+    "scoreOdds": {},
+    "scoreProb": [],
+    "handicap": {
+      "line": "",
+      "timeline": [],
+      "homeWater": [],
+      "awayWater": [],
+      "signal": "等待自动数据"
+    },
+    "news": [
+      "等待自动数据源"
+    ],
+    "_mock": true
+  }
+]
