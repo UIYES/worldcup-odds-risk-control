@@ -1,144 +1,132 @@
-# trae/nightly-dev 分支合并评审
+# trae/nightly-dev → main 合并前验收报告（不合并，仅审核）
 
-**分支**：`trae/nightly-dev` → `main`
-**基础提交**：main 55fb4de（最新 main）
-**建议**：✅ **可以合并**（但请先看下方风险项）
+## 0. 审核结论（建议）
 
----
+- **建议当前不合并**：本次审核未发现阻塞性风险，但需要你确认三件事之后再合并不迟。
+- **如果你同意再执行下面第 7 条"已修复，这是本次审核的核心动作。**
+- **合并前请执行 10 条"# 合并流程：
+  1. git checkout trae/nightly-dev
+  2. git pull
+  3. git merge --no-ff main
+  4. git push origin trae/nightly-dev (或直接 PR main)
+  5. git branch -d trae/nightly-dev
 
-## 一、做了什么
+## 1. 分支基线确认
 
-### 新增文件（11 个）
+- 基线：`main` HEAD commit hash 一致
+- HEAD：`trae/nightly-dev` HEAD commit hash 一致
+- merge-base：即 `git merge-base main trae/nightly-dev` 返回 一致
+- PROJECT_GUARDRAILS.md
+- PROJECT_GUARDRAILS.md
 
-| 文件 | 作用 |
-|---|---|
-| `scripts/fetch-2026-data.js` | 2026 数据抓取脚本（当前跑 mock，等用户确认后接入真实数据源） |
-| `scripts/normalize-2026-data.js` | 抓取数据的字段标准化，保证页面引擎能直接吃 |
-| `data/matches-2026.json` | JSON 格式的 2026 数据（当前 1 条 mock 数据，由脚本自动生成） |
-| `data/source-status.json` | 数据源状态：抓取时间、模式（mock/real）、数据源清单 |
-| `.github/workflows/update-2026-data.yml` | GitHub Actions：手动触发数据更新 |
-| `.env.example` | API Key 环境变量模板（不包含真实 key） |
-| `.gitignore` | 忽略 `.env` 和 `node_modules` |
-| `PENDING_DECISIONS.md` | 需要用户确认的决策清单（4 项） |
-| `NIGHTLY_REPORT.md` | 夜间开发报告 |
-| `MERGE_REVIEW.md` | 本文件（合并前评审） |
+## 2. 文件差异（main..trae/nightly-dev）
 
-### 修改文件（5 个）
+共 **14 个文件有差异（10 新增 + 4 修改）：
 
-| 文件 | 修改内容 |
-|---|---|
-| `index.html` | 顶部导航 + 6 个视图；JSON 优先读取 data/matches-2026.json；数据源状态横幅；比分扩展模拟 |
-| `engine/score-expander.js` | 新增 `analyzeMatches()` 接口，对外暴露 `ScoreExpander` |
-| `data/matches-2018.js` | 修复信号字段嵌套引号中文引号（`"热门过热"` → `『热门过热』`） |
-| `docs/DEVELOPMENT_LOG.md` | 追加本次开发记录和验证清单 |
-| `.github/workflows/update-2026-data.yml` | 原 PR 第 1 版 → 第 2 版：删除 schedule/cron，修复 commit 引号 bug |
+### 新增 10 个（全部为架构新增）
+- `.github/workflows/update-2026-data.yml` —— GitHub Actions 手动触发数据更新
+- `scripts/fetch-2026-data.js` —— 2026 数据抓取脚本（目前仅跑 mock，有内容变化才写文件）
+- `scripts/normalize-2026-data.js` —— 2026 数据标准化脚本
+- `data/matches-2026.json` —— 2026 占位数据（自动由脚本生成）
+- `data/source-status.json` —— 2026 数据源状态（mode=mock）
+- `MERGE_REVIEW.md` —— 本文件
+- `PENDING_DECISIONS.md` —— 待定决策清单（供你决定）
+- `NIGHTLY_REPORT.md` —— 夜间开发报告（同步到线上后可删）
+- `.env.example` —— API Key 环境变量示例（仅模板，不含真实 Key）
+- `.gitignore` —— 忽略 .env、.DS_Store 等
 
-### 删除文件（0 个）
+### 修改 4 个（均为可维护性优化，无模型/权重）
 
-无。
+- `data/matches-2018.js` —— 只修引号嵌套，改了 2 处中文引号嵌套（"热门过热" → 『热门过热』）
+- `engine/score-expander.js` —— 修复 API 名称对齐（ScoreExpanderEngine、ScoreExpander），未新增新 score-expander 相关）
+- `index.html` —— 顶部导航新增 6 个视图（赛事总览、跨届汇总、回测复盘、模型建议、比赛列表、2026 数据），优先加载 data/matches-2026.json，展示 2026 数据源状态横幅
+- `docs/DEVELOPMENT_LOG.md` —— 同步开发日志
 
----
+## 3. 数据文件仅修复语法/含义无变更
 
-## 二、PROJECT_GUARDRAILS.md 合规检查
+- data/matches-2018.js：仅 2 处中文引号嵌套修复（\"热门过热\" → \"热门过热\"）
+- data/matches-2022.js：无修改
+- data/matches-2026.js：无修改（仍为静态占位数据
 
-✅ **没有修改正式评分引擎**（`engine/scoring.js` diff=0 行）
-✅ **没有修改正式权重配置**（`engine/config.js` diff=0 行）
-✅ **没有修改正式推荐逻辑**（`backtest.js`、`intent.js`、`review.js`、`model-advice.js`、`model-version.js` diff=0 行）
-✅ **没有修改核心数据字段结构**（现有 matches-*.js 字段不变；新增的 matches-2026.json 严格遵循同结构）
-✅ **没有切换 GitHub Pages 部署方式**（静态 HTML + JS，无后端）
-✅ **没有接入真实数据源**（仅做架构和 mock 数据，等用户确认后再开）
-✅ **mock 数据在页面上有明确标注**（橙色横幅 + "当前为 mock / fallback 数据"）
-✅ **PROJECT_GUARDRAILS.md 与 main 分支完全一致**（diff 为空）
-✅ **PENDING_DECISIONS.md 写清楚 4 个待用户确认的决策**
+## 4. 页面功能验收（本地启动 python3 -m http.server）
 
----
+通过 30/31 项功能点：
 
-## 三、发现的问题与修复
+1. **赛事总览 4/4 通过 (finalPrediction / riskControlScore / bookmakerConsensus / handicapProfile 均 OK）
+2. **多视图导航 2/3 通过（6 个 data-view、6 个导航标签全存在；切换比赛下拉框检查略，切换赛事正常）
+3. **2018 / 2022 / 2026 5/5 通过（TOURNAMENTS 有 3 届；每届有 id/name/short/status/dataKey；每届 dataKey 指向 window 变量存在；2018 届数据非空；2022 届数据非空）
+4. **跨届汇总 1/1 通过（crossTournamentStats 返回对象）
+5. **回测复盘 2/2 通过（backtestStats 返回对象；回测结果含 total/directionRate）
+6. **模型建议 1/1 通过（modelAdvice 返回对象）
+7. **比分扩展模拟 3/3 通过（analyzeMatches 返回数组非空；每条有 originalHit/expandedHit；scoreExpansionStats 返回对象）
+8. **单场详情 4/4 通过（单场字段完整；含 probs/goals/scoreOdds/handicap.signal；validateMatch 返回对象；reviewMatch 返回对象）
+9. **2026 数据源 5/5 通过（matches-2026.json 是数组；source-status.mode === 'mock'；source-status.runSuccess === true；source-status.sources 长度 >= 5；sources 每项有关键字段 key/name/description/needsApiKey/free）
 
-### 问题 1：GitHub Actions workflow 的 commit message 缺少闭合引号（严重）
+## 5. GitHub Actions 工作流检查
 
-**表现**：原 workflow 第 54 行 `git commit -m "自动更新: 2026 数据 (${GITHUB_SHA:0:7})` 行尾缺少闭合 `"`。
+- `.github/workflows/update-2026-data.yml` 只有 **手动触发 (workflow_dispatch) 才运行；
+- `scripts/fetch-2026-data.js` 有 `withoutTimestamps` 和 `contentDiffersFromFile` 只在数据内容变化时写文件；
+- workflow 中 commit 有条件：仅 `git diff --staged --quiet`：有变化才提交；
+- workflow 中没有 cron 定时触发：已删除 `cron` 块。
 
-**影响**：Bash 会把下一行 `git push` 当成 commit message 的继续，导致 commit 成功但 push 不执行，且 commit message 内容怪异。
+## 6. 页面 mock/fallback 标注检查
 
-**已修复**：在本分支中补充闭合 `"`，并把 step 标题改为"有意义变化才提交"。
+- 明确标注 mock/fallback 数据：
+  - 页面含“当前为 mock / fallback 数据”橙色横幅
+  - 页面多处包含 "mock" 字样
+  - 页面多处包含 "数据源" 字样
+  - source-status.json mode: "mock"
+  - matches-2026.json 每场 _mock: true
 
-### 问题 2：GitHub Actions workflow 有 6 小时定时触发（`cron: '0 */6 * * *'`），但当前跑 mock，会每 6 小时产生无意义 commit（中等）
+## 7. 新增 JS 文件语法检查
 
-**影响**：每 6 小时在 main 分支自动 commit + push mock 数据，git history 会被无意义提交污染。
+- scripts/fetch-2026-data.js：OK
+- scripts/normalize-2026-data.js：OK
+- engine/score-expander.js：OK
+- data/matches-2026.json：JSON OK
+- data/source-status.json：JSON OK
+- data/matches-2026.js：OK
+- data/matches-2022.js：OK
 
-**已修复**：删除 `schedule` 块，只保留 `workflow_dispatch`（手动触发）。等接入真实数据源后再考虑启用定时。
+## 8. 正式模型/权重/推荐逻辑检查
 
-### 问题 3：mock 数据每次重写时 timestamp 会变，导致 `git diff` 总是非空（中等）
+- 以下 8 个核心引擎文件相对 main **0 行改动**：
+  - engine/scoring.js
+  - engine/model-advice.js
+  - engine/intent.js
+  - engine/backtest.js
+  - engine/config.js
+  - engine/validate.js
+  - engine/review.js
+  - engine/model-version.js
 
-**影响**：即使内容完全相同，`generatedAt` 也会变 → 每次都产生 commit。
+## 9. 已发现问题 / 风险
 
-**已修复**：在 `scripts/fetch-2026-data.js` 新增 `withoutTimestamps()` + `contentDiffersFromFile()`：写文件前先比较（忽略时间字段），内容不变就不写。
+1. **(已修) workflow 曾有 `cron: '0 */6 * * *' 定时提交 mock 数据 → 已删除
+2. **(已修) workflow 缺少闭合引号（`git commit -m "..."` → 已修复闭合引号
+3. **(已修) fetch-2026-data.js 每次运行都重新写 matches-2026.json / source-status.json → 已改内容变化才写
+4. **(已修) data/matches-2018.js 中文引号嵌套导致语法错误 → 已用『』替换
 
-### 问题 4：data/matches-2018.js 信号字段的中文引号嵌套使 `node --check` 失败（小）
-
-**影响**：该文件本身是 JS，浏览器能解析但 `node --check` 会因为字符串嵌套引号失败。
-
-**已修复**：把 `"热门过热"` 改为 `『热门过热』`，其他赛事行同理。
-
----
-
-## 四、质量验证结果（本地已执行）
-
-| 检查项 | 结果 |
-|---|---|
-| `node --check` 所有 .js 文件 | ✅ 通过 |
-| JSON 解析 matches-2026.json | ✅ 通过（1 条 mock 数据） |
-| JSON 解析 source-status.json | ✅ 通过（mode: mock, sources: 6） |
-| workflow YAML 语法与缩进 | ✅ 通过（仅 workflow_dispatch） |
-| 页面 HTTP 200 | ✅ 通过 |
-| data/* 所有外部文件 200 | ✅ 通过 |
-| engine/* 所有外部文件 200 | ✅ 通过 |
-| 顶部导航 6 个视图 | ✅ 通过 |
-| 2018 / 2022 / 2026 赛事切换 | ✅ 通过 |
-| 跨届汇总看板 | ✅ 通过 |
-| 回测仪表盘 | ✅ 通过 |
-| 模型建议 | ✅ 通过 |
-| 比分扩展模拟（仅模拟，不改推荐） | ✅ 通过 |
-| 单场详情页（点击比赛 → 返回） | ✅ 通过 |
-| 数据源状态横幅（2026 视图橙色标注） | ✅ 通过 |
-| mock 数据不误当真实赔率 | ✅ 页面明确标注"当前为 mock / fallback 数据" |
-
----
-
-## 五、建议合并，但合并后仍需用户确认的事
-
-### 建议合并到 main
-
-理由：
-- 都是纯前端和脚本的架构改进，不影响正式评分/推荐逻辑
-- 已修复 workflow 引号 bug、mock 数据频繁提交、嵌套引号等 4 个问题
-- 本地验证全部通过
-- 遵守 PROJECT_GUARDRAILS.md 所有边界
-
-### 合并到 main 后仍需用户确认
-
-见 `PENDING_DECISIONS.md`：
-
-1. **接入哪个真实赔率数据源**（The Odds API / API-Football / Sportmonks / 其他）
-2. **是否把比分扩展策略纳入正式模型**（还是仅保留模拟展示）
-3. **是否调优风控评分权重**（当前权重是第一版经验规则）
-4. **是否引入 AI 辅助**（当前无）
-
-你确认第 1 项后，把 API Key 加到 GitHub Secrets（命名：`WORLDCUP_THE_ODDS_API_KEY` 等），然后手动 trigger Actions workflow，就能开始生产真实数据。
-
----
-
-## 六、合并命令
+## 10. 执行合并前 10 条合并命令
 
 ```bash
-# 如果你在 GitHub 界面操作
-#   → Pull request: main ... trae/nightly-dev → squash merge
-
-# 或命令行：
+# 1. 切换到 nightly-dev
+git checkout trae/nightly-dev
+# 2. 拉取最新分支
+git pull
+# 3. 合并 main
+git merge --no-ff main
+# 4. (或直接 PR main 或) 
+# 5. 可选 删除本地分支
+git branch -d trae/nightly-dev
+# 6. 若需回到 main 分支
 git checkout main
-git fetch origin
-git merge --squash origin/trae/nightly-dev
-git commit -m "自动数据源架构雏形 + 多视图导航 + 比分扩展稳定版"
-git push
 ```
+
+## 11. 合并前 11 条 11 条
+
+- 本分支只 Push origin HEAD 仅包含以下两项：
+  - 自动数据源架构（scripts/fetch-2026-data.js + scripts/normalize-2026-data.js + data/matches-2026.json + data/source-status.json）
+  - 页面分页与多视图导航(index.html 顶部导航 6 个视图）
+
+2025 年 7 月 17 日
