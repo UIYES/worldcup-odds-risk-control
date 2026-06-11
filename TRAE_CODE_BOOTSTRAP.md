@@ -28,6 +28,8 @@ https://uiyes.github.io/worldcup-odds-risk-control/
 
 长期目标是从离线/静态网页逐步升级为在线数据驱动的分析系统。
 
+> **重要**：接手开发前请先读 [PROJECT_GUARDRAILS.md](PROJECT_GUARDRAILS.md)。它定义了项目什么不能动、什么可以改、哪些改动必须先向用户提案、哪些可以直接做。开发流程和验证清单也在里面。**不读这份文件就开始改代码，可能直接破坏项目的风控定位**。
+
 ## 当前运行方式
 
 ### 在线版
@@ -171,6 +173,7 @@ engine/score-expander.js
 13. 改造为 GitHub Pages 单文件在线版
 14. 从单文件版恢复标准目录结构（拆分 data/、engine/、docs/，重构 index.html 入口）
 15. 比分覆盖优化雏形：新增 engine/score-expander.js，在回测仪表盘和跨届汇总看板展示扩展前后覆盖率对比
+16. 新建 PROJECT_GUARDRAILS.md，明确项目开发边界：什么不能动、什么可以改、哪些改动必须先提案、哪些可以直接做、每次开发后必须验证什么
 
 ## 当前文件形态
 
@@ -267,10 +270,13 @@ https://uiyes.github.io/worldcup-odds-risk-control/
 
 ## 开发原则
 
+> 完整开发边界和流程规范见 [PROJECT_GUARDRAILS.md](PROJECT_GUARDRAILS.md)。
+
 - 每一步先复盘，再开发
 - 不直接改正式模型，先做模拟和回测
 - 样本不足时不做强结论
 - 优先保证手机和 GitHub Pages 能打开
 - 长期目标是服务 2026 世界杯真实数据
 - 页面要让普通用户看懂盘口、水位和波胆含义
+- 涉及正式模型、正式权重、数据字段结构、部署方式、真实数据源接入，必须先向用户提案并获得同意
 
