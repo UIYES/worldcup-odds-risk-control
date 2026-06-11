@@ -208,6 +208,21 @@
     };
   }
 
+  // 为多视图页面提供统一接口：返回每场比赛的候选、扩展前后命中情况
+  function analyzeMatches(list) {
+    return list.map(m => {
+      const original = originalCandidateScores(m);
+      const expanded = expandScoreZone(m);
+      return {
+        match: m,
+        original: original,
+        candidates: expanded,
+        originalHit: originalHit(m),
+        expandedHit: expandedHit(m)
+      };
+    });
+  }
+
   const api = {
     expandScoreZone,
     expandedHit,
@@ -215,9 +230,11 @@
     originalCandidateScores,
     scoreExpansionStats,
     scoreExpansionPerTournament,
-    expansionSummary
+    expansionSummary,
+    analyzeMatches
   };
 
+  window.ScoreExpander = api;
   window.ScoreExpanderEngine = api;
   Object.assign(window, api);
 })();
