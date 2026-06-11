@@ -1,67 +1,80 @@
 {
   "generatedAt": "2026-06-11T18:10:06.801Z",
-  "generatedBy": "scripts/fetch-2026-data.js",
+  "generatedBy": "scripts/fetch-2026-data.js + scripts/sources/fifa-schedule.js",
   "mode": "mock",
   "runSuccess": true,
   "runMessage": "当前无 API Key 配置，写入 mock/fallback 数据。配置数据源后会自动切换为真实数据。",
+  "today": "2026-06-11",
+  "totalMatches": 2,
+  "mockCount": 2,
+  "realCount": 0,
+  "postmortemMatches": 0,
   "sources": [
     {
       "key": "fixture",
       "name": "赛程与赛果",
-      "description": "2026 世界杯比赛日期、阶段、对阵、比分。",
+      "description": "2026 世界杯比赛日期、阶段、对阵、比分",
       "needsApiKey": true,
       "free": false,
       "configured": false,
+      "configuredNote": "需要你确认 FIFA 赛程公开后，再启用 scripts/sources/fifa-schedule.js",
       "lastFetch": null,
       "lastFetchError": null
     },
     {
-      "key": "odds-1x2",
+      "key": "odds1x2",
       "name": "胜平负赔率",
-      "description": "赛前 1x2（主胜 / 平局 / 客胜）赔率。",
+      "description": "赛前 1x2（主胜/平局/客胜）赔率",
       "needsApiKey": true,
       "free": false,
       "configured": false,
+      "configuredNote": "需你确认 API Key 后，在 scripts/sources/odds-provider-template.js 派生真实 adapter",
       "lastFetch": null,
       "lastFetchError": null
     },
     {
-      "key": "odds-handicap",
+      "key": "oddsHandicap",
       "name": "让球盘口与水位",
-      "description": "亚洲让球盘（主队让几球），以及多家公司在不同时点的水位。",
+      "description": "亚洲让球盘（主队让几球），以及多家公司在不同时点的水位",
       "needsApiKey": true,
       "free": false,
       "configured": false,
+      "configuredNote": "需你确认 API Key 后启用",
       "lastFetch": null,
       "lastFetchError": null
     },
     {
-      "key": "odds-totals",
+      "key": "oddsOverUnder",
       "name": "大小球盘口与水位",
-      "description": "总进球数盘口（2.5 球 / 3 球等）和大小球水位。",
+      "description": "总进球数盘口（2.5球/3球等）和大小球水位",
       "needsApiKey": true,
       "free": false,
       "configured": false,
+      "configuredNote": "需你确认 API Key 后启用",
       "lastFetch": null,
       "lastFetchError": null
     },
     {
-      "key": "odds-correct-score",
+      "key": "oddsCorrectScore",
       "name": "波胆赔率",
-      "description": "各个比分（1:0, 2:1, 0:0 ...）的赔率。",
+      "description": "各个比分（1:0, 2:1, 0:0 ...）的赔率",
       "needsApiKey": true,
       "free": false,
-      "configured": false,
-      "lastFetch": null,
-      "lastFetchError": null
+      "oddsoverUnder": {
+        "description": "各个比分（1:0, 2:1, 0:0 ...）的赔率",
+        "configuredNote": "需你确认 API Key 后启用",
+        "lastFetch": null,
+        "lastFetchError": null
+      }
     },
     {
       "key": "news",
       "name": "新闻 / 伤停 / 首发",
-      "description": "球队伤停、赛前首发、天气等对赔率有影响的信息。",
+      "description": "球队伤停、赛前首发、天气等对赔率有影响的信息",
       "needsApiKey": true,
       "free": false,
       "configured": false,
+      "configuredNote": "需你确认来源后，在 scripts/sources/news-source-template.js 派生真实 adapter",
       "lastFetch": null,
       "lastFetchError": null
     }
