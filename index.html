@@ -824,6 +824,8 @@
   <script src="engine/cross-tournament.js"></script>
   <!-- Engine: 数据校验 -->
   <script src="engine/validate.js"></script>
+  <!-- Engine: 比分覆盖优化模拟（依赖 scoring + backtest） -->
+  <script src="engine/score-expander.js"></script>
 
   <!-- Page Logic -->
   <script>
@@ -1003,6 +1005,7 @@
         $("crossTournamentDashboard").innerHTML = "";
         return;
       }
+      const crossExpansion = renderCrossTournamentExpansion();
       $("crossTournamentDashboard").innerHTML = `
         <section class="card section">
           <div class="row">
@@ -1016,11 +1019,34 @@
           ${table(["指标", "结果"], cross.overviewRows)}
           <h3 style="margin-top:14px">各届表现</h3>
           ${table(["届别", "样本", "方向命中", "比分覆盖", "进球命中", "冷门预警"], cross.tournamentRows)}
+          ${crossExpansion}
           <h3 style="margin-top:14px">跨届高频问题</h3>
           ${table(["问题", "出现", "代表比赛"], cross.recurringRows)}
           <h3 style="margin-top:14px">跨届调优方向</h3>
           ${table(["问题", "出现", "紧急度", "建议方向"], cross.adviceRows)}
         </section>
+      `;
+    }
+
+    function renderCrossTournamentExpansion() {
+      const groups = historicalTournamentMatches(window.TOURNAMENTS);
+      const all = groups.flatMap(x => x.matches);
+      if (!all.length) return "";
+      const total = scoreExpansionStats(all);
+      const perTournament = scoreExpansionPerTournament(window.TOURNAMENTS);
+
+      const perTournamentRows = perTournament.map(g => [
+        g.tournament,
+        g.total + " 场",
+        g.originalRate,
+        g.expandedRate,
+        g.improved
+      ]);
+
+      return `
+        <h3 style="margin-top:14px">比分覆盖扩展模拟（跨届）</h3>
+        <div class="note"><p><b>模拟结论：</b>整体从 ${total.originalRate} 扩展到 ${total.expandedRate}，${total.improved}（仅模拟，不替换正式推荐）。</p></div>
+        ${table(["届别", "样本", "原始比分覆盖", "扩展后比分覆盖", "改进"], perTournamentRows)}
       `;
     }
 
@@ -1100,7 +1126,22 @@
               `).join("")}
             </div>
           ` : `<div class="note"><p><b>当前结果：</b>没有明显失手样本，但样本数还少，不能过早下结论。</p></div>`}
+          ${renderScoreExpansion(list)}
         </section>
+      `;
+    }
+
+    function renderScoreExpansion(list) {
+      const expansion = expansionSummary(list);
+      if (!expansion.originalVsExpanded[0] || !expansion.originalVsExpanded[0][1]) return "";
+      return `
+        <h3 style="margin-top:14px">比分覆盖优化模拟</h3>
+        <div class="note"><p><b>说明：</b>在不改正式模型推荐的前提下，把候选比分从每场约 ${expansion.originalVsExpanded[0][2]} 个扩展到约 ${expansion.originalVsExpanded[1][2]} 个，观察比分覆盖率变化。这只是模拟，不替换正式推荐。</p></div>
+        ${table(["方案", "比分覆盖", "说明"], expansion.originalVsExpanded)}
+        <h3 style="margin-top:14px">扩展新增命中来源</h3>
+        ${table(["扩展类型", "新增命中", "代表比赛"], expansion.sourceRows)}
+        <h3 style="margin-top:14px">扩展后仍未命中</h3>
+        ${table(["比赛", "实际比分", "原始候选"], expansion.stillMissRows)}
       `;
     }
 

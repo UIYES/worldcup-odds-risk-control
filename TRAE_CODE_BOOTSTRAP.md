@@ -134,6 +134,7 @@ engine/model-advice.js
 engine/model-version.js
 engine/cross-tournament.js
 engine/validate.js
+engine/score-expander.js
 ```
 
 主要能力：
@@ -169,6 +170,7 @@ engine/validate.js
 12. 生成 JSBox 离线版
 13. 改造为 GitHub Pages 单文件在线版
 14. 从单文件版恢复标准目录结构（拆分 data/、engine/、docs/，重构 index.html 入口）
+15. 比分覆盖优化雏形：新增 engine/score-expander.js，在回测仪表盘和跨届汇总看板展示扩展前后覆盖率对比
 
 ## 当前文件形态
 

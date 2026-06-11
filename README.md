@@ -103,6 +103,7 @@ worldcup-odds-risk-control/
 | `engine/model-version.js` | 模型版本对比，模拟当前模型和建议版模型的历史表现 |
 | `engine/cross-tournament.js` | 跨届汇总，把已结束赛事样本合并看整体表现和跨届问题 |
 | `engine/validate.js` | 数据校验，检查 2026 真实数据是否缺少关键字段 |
+| `engine/score-expander.js` | 比分覆盖优化模拟，从正式候选比分扩展相邻、平局、冷门、大比分，用于展示扩展前后覆盖率对比（不替换正式推荐） |
 | `docs/2026_DATA_TEMPLATE.md` | 2026 世界杯单场比赛数据录入说明 |
 
 ## 当前最重要的开发方向
