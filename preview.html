@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>世界杯赔率风控分析</title>
+  <title>世界杯赔率风控分析 · 测试版 (preview)</title>
   <style>
     :root {
       --bg: #f6f7fb;
@@ -184,6 +184,41 @@
       display: grid;
       gap: 10px;
     }
+
+    /* 多视图导航 */
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .nav-btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 8px 10px;
+      background: #fff;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .nav-btn:hover {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+    .nav-btn.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .view { display: none; }
+    .view.active { display: block; }
 
     .match {
       padding: 12px 14px;
@@ -745,25 +780,50 @@
 </head>
 <body>
   <main class="app">
-    <section id="overviewScreen" class="screen">
-      <div class="topbar">
-        <div>
-          <h1>赛事总览</h1>
-          <p>先选届别，再看比赛列表，点进每场比赛看赔率、波胆和让球水位。</p>
-        </div>
-        <span class="pill blue" id="topbarPill">回测原型</span>
+    <div class="topbar">
+      <div>
+        <h1>世界杯赔率风控分析</h1>
+        <p>从盘口水位、波胆分布和历史回测视角分析比赛风险。</p>
       </div>
+      <span class="pill blue" id="topbarPill">回测原型</span>
+    </div>
 
+    <nav class="nav" id="navBar">
+      <button class="nav-btn active" data-view="overview">赛事总览</button>
+      <button class="nav-btn" data-view="crossTournament">跨届汇总</button>
+      <button class="nav-btn" data-view="backtest">回测复盘</button>
+      <button class="nav-btn" data-view="advice">模型建议</button>
+      <button class="nav-btn" data-view="matches">比赛列表</button>
+      <button class="nav-btn" data-view="sourceStatus">2026 数据</button>
+    </nav>
+
+    <!-- 视图 1：赛事总览 -->
+    <section id="view-overview" class="view active">
       <div id="tournamentBar"></div>
-      <div id="crossTournamentDashboard"></div>
-      <div id="dataHealth"></div>
-
+      <div id="sourceStatusBar"></div>
       <div class="summary-grid" id="summaryGrid"></div>
-
       <div class="board" id="priorityBoard"></div>
+    </section>
 
+    <!-- 视图 2：跨届汇总 -->
+    <section id="view-crossTournament" class="view">
+      <div id="crossTournamentDashboard"></div>
+    </section>
+
+    <!-- 视图 3：回测复盘 -->
+    <section id="view-backtest" class="view">
+      <div id="dataHealth"></div>
       <div id="backtestDashboard"></div>
+    </section>
 
+    <!-- 视图 4：模型建议 -->
+    <section id="view-advice" class="view">
+      <div id="modelAdvice"></div>
+      <div id="scoreExpansion"></div>
+    </section>
+
+    <!-- 视图 5：比赛列表 -->
+    <section id="view-matches" class="view">
       <div class="toolbar">
         <select id="stageFilter">
           <option value="全部">全部阶段</option>
@@ -772,7 +832,6 @@
           <option value="决赛">决赛</option>
         </select>
       </div>
-
       <div class="topbar">
         <div>
           <h2>全部比赛</h2>
@@ -783,6 +842,17 @@
       <div class="matches" id="matches"></div>
     </section>
 
+    <!-- 视图 6：2026 数据状态 -->
+    <section id="view-sourceStatus" class="view">
+      <div id="sourceStatusBar-2"></div>
+      <div class="card section">
+        <h3>数据源调研</h3>
+        <p style="color:#475569;font-size:13px;margin:6px 0 0 0">以下数据源是调研阶段列出的候选。接入新数据源前，必须在 PENDING_DECISIONS.md 中说明问题 / 证据 / 建议 / 好处 / 风险，等你确认后再改。</p>
+        <ul id="sourceList" style="margin:14px 0 0 0;padding-left:18px;font-size:14px;line-height:1.8"></ul>
+      </div>
+    </section>
+
+    <!-- 比赛详情页（保留原设计） -->
     <section id="detailScreen" class="screen hidden">
       <div class="topbar">
         <button class="ghost" onclick="goBack()">← 返回赛事总览</button>
@@ -840,17 +910,88 @@
       return window.TOURNAMENTS.find(t => t.id === currentTournamentId) || window.TOURNAMENTS[0];
     }
 
+    // 2026 数据：优先从 data/matches-2026.json 读（由 GitHub Actions 自动生成），
+    // 如果 JSON 不存在或加载失败，回退到 data/matches-2026.js（静态 JS 文件）。
+    // 其他届别始终从 matches-20XX.js 读。
+    window.MATCHES_2026_JSON = null;   // 由 bootstrap 异步加载
+    window.SOURCE_STATUS = null;        // 由 bootstrap 异步加载
+    let dataLoadError = null;
+
     function getMatches() {
       const t = getCurrentTournament();
+      if (t.id === "wc2026" && Array.isArray(window.MATCHES_2026_JSON) && window.MATCHES_2026_JSON.length > 0) {
+        return window.MATCHES_2026_JSON.slice();
+      }
       return (window[t.dataKey] || []).slice();
+    }
+
+    function isMockData() {
+      if (window.SOURCE_STATUS && window.SOURCE_STATUS.mode) {
+        return window.SOURCE_STATUS.mode === "mock";
+      }
+      const list = getMatches();
+      return list.length > 0 && list[0]._mock === true;
+    }
+
+    function renderSourceStatus() {
+      const bar = $("sourceStatusBar");
+      if (!bar) return;
+      const cur = getCurrentTournament();
+      if (cur.id !== "wc2026") {
+        bar.style.display = "none";
+        return;
+      }
+      const mock = isMockData();
+      const status = window.SOURCE_STATUS;
+      const generatedAt = status && status.generatedAt ? new Date(status.generatedAt).toLocaleString("zh-CN") : "未知";
+      const label = mock ? "当前为 mock / fallback 数据（等用户确认接入真实数据源）" : "数据由自动抓取更新";
+      bar.innerHTML = `
+        <section class="card section" style="background:${mock ? '#fff7ed' : '#ecfdf5'};border:1px solid ${mock ? '#fed7aa' : '#a7f3d0'}">
+          <h3 style="margin:0 0 4px 0;font-size:15px">${label}</h3>
+          <p style="margin:0;color:#475569;font-size:13px">数据源: ${status && status.sources ? status.sources.map(s => `${s.name}${s.needsApiKey ? '（需 API Key）' : ''}`).join(' / ') : '待加载'} · 最后更新: ${generatedAt} · 条目数: ${getMatches().length}</p>
+          ${dataLoadError ? `<p style="margin:4px 0 0 0;color:#b45309;font-size:13px">JSON 加载失败，已回退到静态数据文件：${dataLoadError}</p>` : ""}
+        </section>
+      `;
+      bar.style.display = "block";
     }
 
     const timeLabels = ["T-24h", "T-12h", "T-6h", "T-1h", "T-10m"];
     let selectedId = null;
     let currentTab = "overview";
     let selectedScore = "2:1";
+    let currentView = "overview";
 
     const $ = (id) => document.getElementById(id);
+
+    // 多视图切换
+    function switchView(viewName) {
+      currentView = viewName;
+      // 更新导航按钮高亮
+      const navBar = $("navBar");
+      if (navBar) {
+        navBar.querySelectorAll(".nav-btn").forEach(btn => {
+          btn.classList.toggle("active", btn.dataset.view === viewName);
+        });
+      }
+      // 切换视图显示
+      ["overview", "crossTournament", "backtest", "advice", "matches", "sourceStatus"].forEach(v => {
+        const el = $("view-" + v);
+        if (el) el.classList.toggle("active", v === viewName);
+      });
+      // 详情页隐藏
+      $("detailScreen").classList.add("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // 绑定导航按钮
+    document.addEventListener("DOMContentLoaded", () => {
+      const navBar = $("navBar");
+      if (navBar) {
+        navBar.querySelectorAll(".nav-btn").forEach(btn => {
+          btn.addEventListener("click", () => switchView(btn.dataset.view));
+        });
+      }
+    });
 
     function filteredMatches() {
       const stageEl = $("stageFilter");
@@ -862,12 +1003,9 @@
     function changeTournament(id) {
       currentTournamentId = id;
       localStorage.setItem(TOURNAMENT_STORAGE_KEY, id);
-      // 切赛事后回到总览页，避免详情页指向旧赛事的比赛
-      $("detailScreen").classList.add("hidden");
-      $("overviewScreen").classList.remove("hidden");
       selectedId = null;
+      switchView("overview");
       renderOverview();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function bestGoal(match) {
@@ -941,6 +1079,7 @@
 
     function renderOverview() {
       renderTournamentBar();
+      renderSourceStatus();
       renderCrossTournamentDashboard();
       const list = filteredMatches();
       if (!list.length) {
@@ -969,6 +1108,9 @@
 
       renderPriorityBoard(scored);
       renderBacktestDashboard(list);
+      renderModelAdvice(list);
+      renderScoreExpansion(list);
+      renderSourceList2();
       $("matchTotal").textContent = `${list.length} 场`;
 
       $("matches").innerHTML = scored.map(({ match: m, risk, profile, final, intent }) => {
@@ -1177,7 +1319,11 @@
       const match = getMatch();
       selectedScore = match.scoreProb[0][0];
       currentTab = "overview";
-      $("overviewScreen").classList.add("hidden");
+      // 点击比赛时隐藏所有视图，显示详情页
+      ["overview", "crossTournament", "backtest", "advice", "matches", "sourceStatus"].forEach(v => {
+        const el = $("view-" + v);
+        if (el) el.classList.remove("active");
+      });
       $("detailScreen").classList.remove("hidden");
       renderDetail();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1185,9 +1331,8 @@
 
     function goBack() {
       $("detailScreen").classList.add("hidden");
-      $("overviewScreen").classList.remove("hidden");
+      switchView("overview");
       renderOverview();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function getMatch() {
@@ -1642,8 +1787,144 @@
       ctx.fillText(yName, 10, 18);
     }
 
+    // 模型建议视图渲染：把 modelAdvice 和 compareModelVersions 结果放到一个新视图
+    function renderModelAdvice(list) {
+      const container = $("modelAdvice");
+      if (!container) return;
+      const advice = modelAdvice(list);
+      const comparison = compareModelVersions(list);
+      // 从引擎中提取的建议文本
+      const adviceText = (advice && typeof advice === "object")
+        ? (advice.summary || "暂无建议")
+        : (typeof advice === "string" ? advice : "暂无建议");
+      container.innerHTML = `
+        <section class="card section">
+          <h2>模型复盘建议</h2>
+          <p>${adviceText}</p>
+          ${comparison && comparison.recommendation ? `<div class="note" style="margin-top:10px"><p><b>版本对比：</b>${comparison.recommendation}</p></div>` : ""}
+        </section>
+      `;
+    }
+
+    // 比分覆盖优化雏形视图渲染
+    function renderScoreExpansion(list) {
+      const container = $("scoreExpansion");
+      if (!container) return;
+      if (typeof window.ScoreExpander === "undefined") {
+        container.innerHTML = `<section class="card section"><h2>比分覆盖优化</h2><p>引擎未加载</p></section>`;
+        return;
+      }
+      // 用 2018 和 2022 的历史样本做扩展模拟，展示扩展前后命中率对比
+      const historical = [];
+      window.TOURNAMENTS.forEach(t => {
+        if (t.id === "wc2026") return;
+        const subList = (window[t.dataKey] || []).slice();
+        if (subList.length) historical.push({ name: t.short, list: subList });
+      });
+      let rowsHtml = "";
+      let totalOriginal = 0, totalExpanded = 0, totalMatches = 0;
+      historical.forEach(h => {
+        const expanded = window.ScoreExpander.analyzeMatches(h.list);
+        const originalHit = expanded.filter(x => x.originalHit).length;
+        const expandedHit = expanded.filter(x => x.expandedHit).length;
+        totalOriginal += originalHit;
+        totalExpanded += expandedHit;
+        totalMatches += h.list.length;
+        rowsHtml += `
+          <div class="card section" style="padding:10px 14px">
+            <h3>${h.name}（${h.list.length} 场）</h3>
+            <div class="summary-grid" style="grid-template-columns:repeat(2,1fr);margin-top:6px">
+              <div class="summary"><span>扩展前命中</span><strong>${originalHit} 场</strong></div>
+              <div class="summary"><span>扩展后命中</span><strong>${expandedHit} 场</strong></div>
+            </div>
+            <details style="margin-top:8px;font-size:13px;color:#475569">
+              <summary>每场详情</summary>
+              <table style="width:100%;font-size:12px;border-collapse:collapse;margin-top:6px">
+                <tr><th style="text-align:left;padding:4px">比赛</th><th style="text-align:left;padding:4px">实际比分</th><th style="text-align:left;padding:4px">扩展后候选</th><th style="text-align:left;padding:4px">是否命中</th></tr>
+                ${expanded.map(r => `
+                  <tr>
+                    <td style="padding:4px">${r.match.home} vs ${r.match.away}</td>
+                    <td style="padding:4px">${r.match.actual}</td>
+                    <td style="padding:4px">${r.candidates.join(", ")}</td>
+                    <td style="padding:4px;color:${r.expandedHit ? "var(--green)" : "var(--red)"}">${r.expandedHit ? "是" : "否"}</td>
+                  </tr>`).join("")}
+              </table>
+            </details>
+          </div>`;
+      });
+      container.innerHTML = `
+        <section class="card section">
+          <h2>比分覆盖优化雏形</h2>
+          <p style="margin:6px 0 12px 0">模拟扩展相邻比分 / 平局比分 / 冷门比分 / 大比分，对比扩展前后命中率。</p>
+          <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px">
+            <div class="summary"><span>扩展前总命中率</span><strong>${totalMatches ? totalOriginal : 0} / ${totalMatches}</strong></div>
+            <div class="summary"><span>扩展后总命中率</span><strong>${totalMatches ? totalExpanded : 0} / ${totalMatches}</strong></div>
+            <div class="summary"><span>改进</span><strong>+${totalMatches ? totalExpanded - totalOriginal : 0} 场</strong></div>
+          </div>
+          ${rowsHtml}
+          <div class="note" style="margin-top:10px">
+            <p><b>说明：</b>此模块只做模拟展示，不改变正式推荐结果。如需把扩展策略纳入正式模型，需要先写提案并获得你的确认。</p>
+          </div>
+        </section>
+      `;
+    }
+
+    // 2026 数据源列表渲染
+    function renderSourceList2() {
+      const container = $("sourceList");
+      const bar2 = $("sourceStatusBar-2");
+      if (!container) return;
+      // 在 2026 视图中也展示数据源状态横幅
+      if (bar2) {
+        const mock = isMockData();
+        const status = window.SOURCE_STATUS;
+        const gen = status && status.generatedAt ? new Date(status.generatedAt).toLocaleString("zh-CN") : "未知";
+        bar2.innerHTML = `
+          <section class="card section" style="background:${mock ? "#fff7ed" : "#ecfdf5"};border:1px solid ${mock ? "#fed7aa" : "#a7f3d0"}">
+            <h3 style="margin:0 0 4px 0;font-size:15px">${mock ? "当前为 mock / fallback 数据" : "数据由自动抓取更新"}</h3>
+            <p style="margin:0;color:#475569;font-size:13px">最后更新：${gen} · 当前条目：${getMatches().length} 场</p>
+            ${dataLoadError ? `<p style="margin:4px 0 0 0;color:#b45309;font-size:13px">JSON 加载失败，已回退：${dataLoadError}</p>` : ""}
+          </section>`;
+      }
+      // 列出数据源候选
+      const defaultSources = [
+        { key: "fixture", name: "赛程与赛果", desc: "FIFA 官网、维基百科、公开赛程页", needsApiKey: false, free: false, status: "调研中" },
+        { key: "odds-1x2", name: "胜平负赔率", desc: "The Odds API（免费额度约 500 请求 / 月），需 API Key", needsApiKey: true, free: true, status: "调研中" },
+        { key: "odds-handicap", name: "让球盘口与水位", desc: "The Odds API spreads 端点，或专业博彩 API", needsApiKey: true, free: false, status: "调研中" },
+        { key: "odds-totals", name: "大小球盘口", desc: "The Odds API totals 端点", needsApiKey: true, free: false, status: "调研中" },
+        { key: "odds-correct-score", name: "波胆赔率", desc: "Sportmonks / 专业博彩 API", needsApiKey: true, free: false, status: "调研中" },
+        { key: "news", name: "新闻 / 伤停 / 首发", desc: "球队官网 / 新闻聚合 / API-Football 含 fixtures 信息", needsApiKey: false, free: false, status: "调研中" }
+      ];
+      const sources = (window.SOURCE_STATUS && window.SOURCE_STATUS.sources) ? window.SOURCE_STATUS.sources : defaultSources;
+      container.innerHTML = sources.map(s => `
+        <li><b>${s.name}</b>：${s.description || s.desc || ""}${s.needsApiKey ? "（需 API Key）" : ""} — <span style="color:#64748b">状态：${s.status || "调研中"}</span></li>
+      `).join("");
+    }
+
     $("stageFilter").addEventListener("change", renderOverview);
-    renderOverview();
+
+    // 异步启动：先尝试加载 data/matches-2026.json 和 data/source-status.json，
+    // 失败时回退到 data/matches-2026.js 的静态数据。
+    async function bootstrap() {
+      try {
+        const [matchesRes, statusRes] = await Promise.all([
+          fetch("data/matches-2026.json", { cache: "no-store" }).catch(() => null),
+          fetch("data/source-status.json", { cache: "no-store" }).catch(() => null)
+        ]);
+        if (matchesRes && matchesRes.ok) {
+          window.MATCHES_2026_JSON = await matchesRes.json();
+        } else {
+          dataLoadError = "matches-2026.json 不可用";
+        }
+        if (statusRes && statusRes.ok) {
+          window.SOURCE_STATUS = await statusRes.json();
+        }
+      } catch (e) {
+        dataLoadError = e.message;
+      }
+      renderOverview();
+    }
+    bootstrap();
   </script>
 </body>
 </html>
