@@ -161,17 +161,54 @@ function ensureDir() {
   }
 }
 
+function withoutTimestamps(obj) {
+  // 比较内容时忽略 generatedAt 等时间字段，避免每次都产生 diff
+  if (Array.isArray(obj)) return obj.map(withoutTimestamps);
+  if (obj && typeof obj === "object") {
+    const copy = {};
+    Object.keys(obj).forEach(k => {
+      if (k === "generatedAt" || k === "lastFetch") return;
+      copy[k] = withoutTimestamps(obj[k]);
+    });
+    return copy;
+  }
+  return obj;
+}
+
+function contentDiffersFromFile(path, newObj) {
+  if (!fs.existsSync(path)) return true;
+  try {
+    const existing = JSON.parse(fs.readFileSync(path, "utf8"));
+    const existingCore = JSON.stringify(withoutTimestamps(existing));
+    const newCore = JSON.stringify(withoutTimestamps(newObj));
+    return existingCore !== newCore;
+  } catch (e) {
+    return true;
+  }
+}
+
 function writeMatchesJson(list) {
   ensureDir();
+  if (!contentDiffersFromFile(MATCHES_JSON, list)) {
+    console.log("[fetch-2026] matches-2026.json 内容无变化，跳过重写");
+    return false;
+  }
   fs.writeFileSync(MATCHES_JSON, JSON.stringify(list, null, 2), "utf8");
-  console.log(`[fetch-2026] 已写入 ${MATCHES_JSON.replace(DATA_DIR, "data")}（${list.length} 场）`);
+  console.log(`[fetch-2026] 已写入 data/matches-2026.json（${list.length} 场）`);
+  return true;
 }
 
 function writeStatusJson(runResult) {
   ensureDir();
   const status = buildSourceStatus(runResult);
+  // 如果内容（除生成时间）与现有文件相同就不写，避免 mock 模式下频繁无意义 commit
+  if (!contentDiffersFromFile(STATUS_JSON, status)) {
+    console.log("[fetch-2026] source-status.json 内容无变化，跳过重写");
+    return false;
+  }
   fs.writeFileSync(STATUS_JSON, JSON.stringify(status, null, 2), "utf8");
-  console.log(`[fetch-2026] 已写入 ${STATUS_JSON.replace(DATA_DIR, "data")}`);
+  console.log(`[fetch-2026] 已写入 data/source-status.json（mode=${runResult.mode}）`);
+  return true;
 }
 
 function run() {

@@ -1,14 +1,12 @@
-name: Update 2026 世界杯数据自动更新
+name: Update 2026 数据更新（手动触发）
 
 on:
-  # 定时：每 6 小时（等用户确认数据源后可调整）
-  schedule:
-    - cron: '0 */6 * * *'
+  # 只支持手动触发（workflow_dispatch），
+  # 不做定时自动触发，避免 mock 数据频繁无意义提交
+  # 确认接入真实数据源后再考虑启用 schedule
 
   # 支持手动触发
   workflow_dispatch:
-
-  # 修改脚本或数据文件时不自动触发（push 已在代码变动不会自动跑）
 
 permissions:
   contents: write
@@ -26,7 +24,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: 生成 mock/fallback 数据
+      - name: 生成 2026 数据
         env:
           WORLDCUP_THE_ODDS_API_KEY: ${{ secrets.WORLDCUP_THE_ODDS_API_KEY }}
           WORLDCUP_API_FOOTBALL_KEY: ${{ secrets.WORLDCUP_API_FOOTBALL_KEY }}
@@ -38,12 +36,12 @@ jobs:
       - name: 校验生成结果
         run: |
           echo "=== matches-2026.json ==="
-          node -e "const d=require('./data/matches-2026.json'); console.log('场数:', d.length); console.log('首条 home/dummy home away:', d[0] && d[0].home, '|', d[0] && d[0].away)"
+          node -e "const d=require('./data/matches-2026.json'); console.log('场数:', d.length)"
           echo ""
           echo "=== source-status.json ==="
           node -e "const d=require('./data/source-status.json'); console.log('mode:', d.mode); console.log('generatedAt:', d.generatedAt)"
 
-      - name: Commit 提交
+      - name: 有意义变化才提交
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -51,6 +49,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "数据无变化，跳过 commit"
           else
-            git commit -m "自动更新: 2026 数据 (${GITHUB_SHA:0:7})
+            git commit -m "自动更新: 2026 数据 (${GITHUB_SHA:0:7})"
             git push
           fi
