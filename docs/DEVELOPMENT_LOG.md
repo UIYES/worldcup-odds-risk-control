@@ -181,3 +181,59 @@
 - [x] GitHub Actions workflow YAML 语法合理
 - [x] mock/fallback 数据在页面上明确标注，不伪装真实数据
 - [x] 没有修改正式评分引擎、正式权重、正式推荐规则
+
+## 2026-06-11：第六步 - 测试版入口 preview.html + 今日比赛页 + 数据完整度评分
+
+### 背景
+
+继续遵守 PROJECT_GUARDRAILS.md，不改动正式 index.html。把 preview.html 作为主入口，将以下功能放入 preview.html。
+
+### 本次操作
+
+1. **preview.html 新增：
+   - 顶部导航 7 个视图（今日比赛 / 赛事总览 / 跨届汇总 / 回测复盘 / 模型建议 / 比赛列表 / 2026 数据）
+   - "今日比赛" 靠前展示，每比赛条目：比赛时间、主队/客队、分组、场地、数据源状态、胜平负赔率、让球盘口、大小球盘口、波胆比分候选、主方向、风险等级、进球区间、热门过热标记、防平防冷、数据不足提醒、mock/fallback 标注
+2. **自动数据源 adapter：
+   - `scripts/sources/fifa-schedule.js（赛程/比分源，占位模式等待 FIFA 公开 2026 赛程后启用
+   - `scripts/sources/odds-provider-template.js（赔率源模板，需你确认 API Key 后再启用
+   - `scripts/sources/news-source-template.js（新闻源模板，需你确认后再启用
+   - `scripts/sources/README.md（数据源接入流程说明
+3. **数据完整度评分：
+   - `engine/data-quality.js`：8 项检查（赛程/胜平负/让球/大小球/波胆/新闻/多公司赔率/盘口时间线，输出 0~100 分及可进入风控分析阈值 70 分以下仅谨慎判断、30 分以上可进入正式风控分析、30 分以下数据不足
+4. **2026 数据结构强化：
+   - `data/matches-2026.json`：支持今日比赛、数据源状态、最后更新时间、mock 标记、赔率字段、盘口字段、大小球字段、新闻字段和赛后比分字段
+5. **赛后复盘入口：
+   - 如果 actual 为空显示"等待赛果"；有 actual 则对比赛前判断和比分覆盖和模型错因
+6. **移动端优化：
+   - 顶部导航清晰、卡片紧凑、重要结论先展示、详细解释折叠、单场详情不被破坏
+
+### 验证清单
+
+- [x] preview.html 正常打开
+- [x] 今日比赛视图正常
+- [x] 数据完整度评分正常
+- [x] 数据源状态正常
+- [x] 比分扩展模拟正常
+- [x] 跨届汇总正常
+- [x] 回测复盘正常
+- [x] 单场详情正常
+- [x] 2018 / 2022 / 2026 切换正常
+- [x] mock/fallback 数据有明确标注（橙色横幅 + mock 标签
+- [x] 正式 index.html 与 main 分支一致（未被修改
+- [x] 未修改正式模型/权重文件（scoring.js / model-advice.js / intent.js / backtest.js / config.js / validate.js / review.js / model-version.js）
+- [x] GitHub Actions 仅手动触发，不自动提交 mock 数据
+
+## 2026-06-11：第七步 - 合并前验收 + PENDING_DECISIONS.md 同步
+
+### 本次操作
+
+1. **MERGE_REVIEW.md：合并前验收文档
+2. **NIGHTLY_REPORT.md：夜间开发报告同步
+3. **PENDING_DECISIONS.md：需用户确认的决策列表（API Key 选择、真实数据源接入时机）
+
+### 未解决的问题
+
+1. **GitHub Actions 原自动提交 mock 数据问题：删除 cron 定时，仅保留手动触发
+2. **commit message 闭合引号：修复缺失的 YAML 语法错误
+3. **脚本内容变化才写文件：fetch-2026-data.js 通过 contentDiffersFromFile 判断内容变化后再写文件
+4. **data/matches-2018.js 中文引号嵌套导致语法错误：修复后使用『』替换嵌套

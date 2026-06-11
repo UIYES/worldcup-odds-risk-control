@@ -782,14 +782,15 @@
   <main class="app">
     <div class="topbar">
       <div>
-        <h1>世界杯赔率风控分析</h1>
-        <p>从盘口水位、波胆分布和历史回测视角分析比赛风险。</p>
+        <h1>世界杯赔率风控分析 <span style="font-size:13px;color:#6b7280;font-weight:normal">· 测试版 (preview)</span></h1>
+        <p>今日比赛 / 盘口水位 / 波胆分布 / 历史回测。</p>
       </div>
-      <span class="pill blue" id="topbarPill">回测原型</span>
+      <span class="pill orange" id="topbarPill">测试版 · 数据为 mock/fallback</span>
     </div>
 
     <nav class="nav" id="navBar">
-      <button class="nav-btn active" data-view="overview">赛事总览</button>
+      <button class="nav-btn active" data-view="today">今日比赛</button>
+      <button class="nav-btn" data-view="overview">赛事总览</button>
       <button class="nav-btn" data-view="crossTournament">跨届汇总</button>
       <button class="nav-btn" data-view="backtest">回测复盘</button>
       <button class="nav-btn" data-view="advice">模型建议</button>
@@ -797,8 +798,14 @@
       <button class="nav-btn" data-view="sourceStatus">2026 数据</button>
     </nav>
 
+    <!-- 视图 0：今日比赛（手机端优先展示 -->
+    <section id="view-today" class="view active">
+      <div id="todayDateBar"></div>
+      <div id="todayMatches"></div>
+    </section>
+
     <!-- 视图 1：赛事总览 -->
-    <section id="view-overview" class="view active">
+    <section id="view-overview" class="view">
       <div id="tournamentBar"></div>
       <div id="sourceStatusBar"></div>
       <div class="summary-grid" id="summaryGrid"></div>
@@ -896,9 +903,135 @@
   <script src="engine/validate.js"></script>
   <!-- Engine: 比分覆盖优化模拟（依赖 scoring + backtest） -->
   <script src="engine/score-expander.js"></script>
+  <!-- Engine: 数据完整度评分（判断当前数据是否足够进入风控分析） -->
+  <script src="engine/data-quality.js"></script>
 
   <!-- Page Logic -->
   <script>
+    // ===== 今日比赛视图（优先展示）=====
+    function getTodayMatches() {
+      const all = getMatches();
+      if (!Array.isArray(all) || all.length === 0) return [];
+      return all.filter(m => !m.actual); // 今日/未开赛的比赛
+    }
+    function renderTodayMatches() {
+      const box = $("todayMatches");
+      if (!box) return;
+      const list = getTodayMatches();
+      const today = new Date().toLocaleDateString("zh-CN");
+      const dateBar = $("todayDateBar");
+      if (dateBar) {
+        dateBar.innerHTML = `
+          <div class="topbar" style="margin-top:8px">
+            <div>
+              <h2>今日比赛 · ${today}</h2>
+              <p style="font-size:13px;color:#475569">共 ${list.length} 场未开赛；赛前分析实时刷新。</p>
+            </div>
+            <span class="pill orange">${isMockData() ? "数据为 mock/fallback（接入真实数据源后会自动刷新）" : "数据由自动抓取更新"}</span>
+          </div>
+        `;
+      }
+      if (list.length === 0) {
+        box.innerHTML = `<div class="card section" style="text-align:center;padding:30px"><p style="color:#6b7280">当前没有可用的今日比赛。切换到 "2022 卡塔尔世界杯" 可以看历史回测。</p></div>`;
+        return;
+      }
+      let html = "";
+      list.forEach(m => {
+        const q = window.DataQualityEngine ? window.DataQualityEngine.analyze(m) : null;
+        const qScore = q ? q.score : 0;
+        const qMissing = q && q.missing && q.missing.length > 0 ? q.missing.join("、") : "字段齐备";
+        const canAnalyze = q && q.canAnalysis;
+        const mockTag = q && q.mock;
+        const reason = q && q.reason;
+        html += `
+          <div class="card" style="margin-bottom:12px">
+            <div class="topbar" style="margin-top:0;padding-top:0">
+              <div>
+                <h3 style="margin:0 0 4px 0;font-size:17px">${m.home || "（主）"} vs ${m.away || "（客）"}</h3>
+                <p style="margin:0;color:#475569;font-size:13px">${m.date ? m.date : "日期未发布"} · ${m.stage || "分组未定"}${m.group ? " · " + m.group : ""}${m.venue ? " · " + m.venue : ""}</p>
+              </div>
+              <span class="pill ${mockTag ? " orange" : " blue"}">${mockTag ? "mock/fallback" : "真实数据"}</span>
+            </div>
+            <div class="ticket-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px">
+              <div class="card" style="padding:10px;background:var(--soft-blue);border:none">
+                <div style="font-size:12px;color:#475569">胜平负</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px">主 ${m.probs && m.probs.home ? m.probs.home.toFixed(2) : "-"} / 平 ${m.probs && m.probs.draw ? m.probs.draw.toFixed(2) : "-"} / 客 ${m.probs && m.probs.away ? m.probs.away.toFixed(2) : "-"}</div>
+              </div>
+              <div class="card" style="padding:10px;background:var(--soft-green);border:none">
+                <div style="font-size:12px;color:#475569">让球盘口</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px">${m.handicap && m.handicap.line ? m.handicap.line : "-"}</div>
+              </div>
+              <div class="card" style="padding:10px;background:#f1f5f9;border:none">
+                <div style="font-size:12px;color:#475569">大小球</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px">${m.overUnder && m.overUnder.line ? m.overUnder.line + "（大 " + (m.overUnder.over || 0).toFixed(2) + " / 小 " + (m.overUnder.under || 0).toFixed(2) + "）" : "-"}</div>
+              </div>
+              <div class="card" style="padding:10px;background:var(--soft-red);border:none">
+                <div style="font-size:12px;color:#475569">风险等级</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px">${m.riskLevel || "数据不足"}</div>
+              </div>
+              <div class="card" style="padding:10px;background:var(--soft-orange);border:none">
+                <div style="font-size:12px;color:#475569">主方向 / 热门过热</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px">${m.mainDirection || "未判断"}${m.isOverheat ? " · 热门过热⚠️" : ""}</div>
+              </div>
+              <div class="card" style="padding:10px;background:#f8fafc;border:none">
+                <div style="font-size:12px;color:#475569">防平 / 防冷</div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px">${m.needDraw ? "建议防平 " : ""}${m.needUpset ? "建议防冷 " : ""}${!m.needDraw && !m.needUpset ? "暂无需特别调整" : ""}</div>
+              </div>
+              <div class="card" style="padding:10px;background:#f1f5f9;border:none">
+                <div style="font-size:12px;color:#475569">比分候选 / 进球区间</div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px">${Array.isArray(m.scoreCandidates) && m.scoreCandidates.length > 0 ? m.scoreCandidates.slice(0, 3).join("、") : "暂无"} / ${Array.isArray(m.goals) && m.goals.length > 0 ? m.goals.map(g => g[0]).join("、") : "暂无"}</div>
+              </div>
+              <div class="card" style="padding:10px;background:#f1f5f9;border:none">
+                <div style="font-size:12px;color:#475569">数据完整度</div>
+                <div style="font-size:15px;font-weight:600;margin-top:4px;color:${qScore >= 70 ? "var(--green)" : qScore >= 30 ? "var(--orange)" : "var(--red)"}">${qScore} 分${canAnalyze ? " · 可进入风控分析" : " · 数据不足，仅供谨慎参考"}</div>
+              </div>
+            </div>
+            ${qMissing ? `<p style="margin:10px 0 0 0;color:#475569;font-size:13px">数据完整度：缺少 ${qMissing}；${reason}</p>` : ""}
+            ${mockTag ? `<p style="margin:10px 0 0 0;color:#b45309;font-size:13px">⚠️ 当前为 mock/fallback 占位数据；赔率、盘口、水位仅供演示页面结构，接入真实数据源后会自动刷新。</p>` : ""}
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ===== 赛后复盘入口 =====
+    function renderPostmortem() {
+      const list = getMatches();
+      if (!Array.isArray(list) || list.length === 0) return "";
+      const finished = list.filter(m => m.actual && m.actual.length > 0);
+      if (finished.length === 0) return "";
+      let html = `<section class="card section" style="background:var(--soft-blue);border:none"><h3 style="margin:0 0 8px 0">赛后复盘（${finished.length} 场已出结果）</h3>`;
+      finished.forEach(m => {
+        const p = m.predict || "未判断";
+        const scoreHit = m.finalScore && m.scoreCandidates && Array.isArray(m.scoreCandidates) && m.scoreCandidates.some(s => s === m.finalScore);
+        const dirHit = m.resultDir === (m.predict || "");
+        const goal = "";
+        html += `
+          <div style="padding:8px 0;border-top:1px dashed #cbd5e1">
+            <div style="font-weight:600">${m.home} vs ${m.away} · 实际 ${m.actual}</div>
+            <div style="color:#475569;font-size:13px">赛前判断：${p} · 方向命中：${dirHit ? "是" : "否"} · 比分覆盖：${scoreHit ? "是" : "否"}</div>
+          </div>
+        `;
+      });
+      html += "</section>";
+      return html;
+    }
+
+    // ===== 数据完整度汇总 =====
+    function renderDataQualitySummary() {
+      const list = getMatches();
+      if (!window.DataQualityEngine) return "";
+      const s = window.DataQualityEngine.summarize(list);
+      return `
+        <section class="card section" style="background:var(--soft-${s.mockCount > 0 ? 'orange' : 'green'});border:none">
+          <h3 style="margin:0 0 6px 0">数据完整度 · 平均 ${s.avgScore} 分</h3>
+          <p style="margin:0;color:#475569;font-size:13px">
+            共 ${s.total} 场 · ${s.okCount} 场可进入正式风控分析 · ${s.cautiousCount} 场需谨慎判断 · ${s.insufficientCount} 场数据不足 · ${s.mockCount > 0 ? s.mockCount + " 场为 mock/fallback" : "无 mock 数据"}
+          </p>
+        </section>
+      `;
+    }
+
     // 当前选中的赛事（届别）。以下所有逻辑都从这里读取数据，
     // 切换届别只改这一处状态，其他评分/UI 逻辑完全不动。
     const TOURNAMENT_STORAGE_KEY = "selected_tournament_id";
@@ -966,20 +1099,18 @@
     // 多视图切换
     function switchView(viewName) {
       currentView = viewName;
-      // 更新导航按钮高亮
       const navBar = $("navBar");
       if (navBar) {
         navBar.querySelectorAll(".nav-btn").forEach(btn => {
           btn.classList.toggle("active", btn.dataset.view === viewName);
         });
       }
-      // 切换视图显示
-      ["overview", "crossTournament", "backtest", "advice", "matches", "sourceStatus"].forEach(v => {
+      ["today", "overview", "crossTournament", "backtest", "advice", "matches", "sourceStatus"].forEach(v => {
         const el = $("view-" + v);
         if (el) el.classList.toggle("active", v === viewName);
       });
-      // 详情页隐藏
       $("detailScreen").classList.add("hidden");
+      if (viewName === "today") renderTodayMatches();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1923,6 +2054,7 @@
         dataLoadError = e.message;
       }
       renderOverview();
+      renderTodayMatches();
     }
     bootstrap();
   </script>

@@ -1,36 +1,23 @@
 [
   {
-    "id": 26001,
+    "id": "wc2026-001",
     "date": "2026-06-11",
-    "stage": "小组赛",
-    "home": "（待自动抓取）",
-    "away": "（待自动抓取）",
+    "stage": "揭幕战",
+    "group": "A 组",
+    "venue": "（待自动抓取）",
+    "home": "美国",
+    "away": "墨西哥",
     "actual": "",
     "finalScore": "",
     "predict": "等待自动数据",
     "confidence": 0,
     "resultCorrect": false,
-    "probs": {
-      "home": 0,
-      "draw": 0,
-      "away": 0
-    },
-    "goals": [
-      [
-        "0-1球",
-        0
-      ],
-      [
-        "2-3球",
-        0
-      ],
-      [
-        "4球以上",
-        0
-      ]
-    ],
+    "resultDir": "",
+    "probs": { "home": 0, "draw": 0, "away": 0 },
+    "goals": [["0-1球", 0], ["2-3球", 0], ["4球以上", 0]],
     "scoreOdds": {},
     "scoreProb": [],
+    "scoreCandidates": [],
     "handicap": {
       "line": "",
       "timeline": [],
@@ -38,9 +25,54 @@
       "awayWater": [],
       "signal": "等待自动数据"
     },
-    "news": [
-      "等待自动数据源"
-    ],
-    "_mock": true
+    "overUnder": { "line": "", "over": 0, "under": 0 },
+    "riskLevel": "数据不足",
+    "mainDirection": "未判断",
+    "isOverheat": false,
+    "needDraw": false,
+    "needUpset": false,
+    "news": ["等待自动数据源"],
+    "sourceStatus": "mock",
+    "lastUpdated": "2026-06-11T18:10:06.801Z",
+    "_mock": true,
+    "_reason": "当前为 mock/fallback 数据：比赛信息（2026 世界杯尚未开赛；真实数据接入后会自动更新）"
+  },
+  {
+    "id": "wc2026-002",
+    "group": "A 组",
+    "venue": "（待自动抓取）",
+    "home": "加拿大",
+    "away": "（待自动抓取）",
+    "date": "2026-06-12",
+    "stage": "小组赛",
+    "actual": "",
+    "finalScore": "",
+    "predict": "等待自动数据",
+    "confidence": 0,
+    "resultCorrect": false,
+    "resultDir": "",
+    "probs": { "home": 0, "draw": 0, "away": 0 },
+    "goals": [["0-1球", 0], ["2-3球", 0], ["4球以上", 0]],
+    "scoreOdds": {},
+    "scoreProb": [],
+    "scoreCandidates": [],
+    "handicap": {
+      "line": "",
+      "timeline": [],
+      "homeWater": [],
+      "awayWater": [],
+      "signal": "等待自动数据"
+    },
+    "overUnder": { "line": "", "over": 0, "under": 0 },
+    "riskLevel": "数据不足",
+    "mainDirection": "未判断",
+    "isOverheat": false,
+    "needDraw": false,
+    "needUpset": false,
+    "news": ["等待自动数据源"],
+    "sourceStatus": "mock",
+    "lastUpdated": "2026-06-11T18:10:06.801Z",
+    "_mock": true,
+    "_reason": "当前为 mock/fallback 数据：2026 世界杯尚未开赛，真实数据接入后会自动更新"
   }
 ]
