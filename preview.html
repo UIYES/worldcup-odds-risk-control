@@ -826,6 +826,8 @@
       <span class="pill orange" id="topbarPill">测试版 · 数据为 mock/fallback</span>
     </div>
 
+    <div id="tournamentBar"></div>
+
     <nav class="nav" id="navBar">
       <button class="nav-btn active" data-module="workbench">比赛工作台</button>
       <button class="nav-btn" data-module="model">模型管理台</button>
@@ -1253,7 +1255,7 @@
       if (moduleName === "model") {
         if (tabName === "cross") renderCrossTournamentDashboard();
         if (tabName === "backtest") {
-          const list = filteredMatches();
+          const list = getCurrentMatches();
           renderBacktestDashboard(list);
         }
         if (tabName === "advice") renderModelAdviceDashboard();
@@ -1285,18 +1287,29 @@
       });
     });
 
-    function filteredMatches() {
+    // 当前赛事全部比赛（不受列表筛选器影响）——用于回测、模型建议等模块
+    function getCurrentMatches() {
+      return getMatches();
+    }
+
+    // 比赛列表专用筛选——仅用于"比赛列表"tab
+    function getFilteredMatchList() {
       const stageEl = $("stageFilter");
       const stage = stageEl ? stageEl.value : "全部";
       const list = getMatches();
       return stage === "全部" ? list : list.filter(m => m.stage === stage);
     }
 
+    // 保留向后兼容——调用处已逐步切换到明确语义
+    function filteredMatches() {
+      return getFilteredMatchList();
+    }
+
     // ===== 三大模块 bridge：把原来的大块渲染拆成按需触发 =====
 
     // 比赛工作台 → 比赛列表（全部比赛 + 过滤）
     function renderMatchesList() {
-      const list = filteredMatches();
+      const list = getFilteredMatchList();
       const scored = list.map(m => ({
         match: m,
         risk: riskControlScore(m),
@@ -1342,7 +1355,7 @@
 
     // 比赛工作台 → 风险与完整度（summary grid + priority board）
     function renderWorkbenchRisk() {
-      const list = filteredMatches();
+      const list = getFilteredMatchList();
       const container = $("summaryGrid");
       if (container) {
         const scored = list.map(m => ({ match: m, risk: riskControlScore(m), profile: handicapProfile(m) }));
@@ -1403,13 +1416,13 @@
 
     // 模型管理台 → 模型建议（无参数版）
     function renderModelAdviceDashboard() {
-      const list = filteredMatches();
+      const list = getCurrentMatches();
       renderModelAdvice(list);
     }
 
     // 模型管理台 → 比分覆盖优化（无参数版）
     function renderScoreExpansionDashboard() {
-      const list = filteredMatches();
+      const list = getCurrentMatches();
       renderScoreExpansion(list);
     }
 
@@ -1417,7 +1430,7 @@
     function renderModelVersion() {
       const container = $("modelVersionDashboard");
       if (!container) return;
-      const list = filteredMatches();
+      const list = getCurrentMatches();
       const basicCount = list.length;
       const enrichedCount = list.filter(m => m.handicap && m.handicap.timeline && m.handicap.timeline.length > 1).length;
       container.innerHTML = `
@@ -1464,28 +1477,41 @@
       }
     }
 
-    // 数据中心 → 数据完整度评分（调用 engine/data-quality.js）
+    // 数据中心 → 数据完整度评分（调用 engine/data-quality.js 的 summarize）
     function renderDataQuality() {
       const container = $("dataQualityDashboard");
       if (!container) return;
       const list = getMatches();
-      if (!window.DataQualityEngine || typeof window.DataQualityEngine.analyze !== "function") {
+      if (!window.DataQualityEngine || typeof window.DataQualityEngine.summarize !== "function") {
         container.innerHTML = `<section class="card section"><h2>数据完整度评分</h2><p style="color:#475569">engine/data-quality.js 未加载或版本不匹配，暂时无法评估。</p></section>`;
         return;
       }
-      const quality = window.DataQualityEngine.analyze(list[0] || {});
-      const summary = window.DataQualityEngine.summary ? window.DataQualityEngine.summary(list) : { score: quality.score, missing: quality.missing, canAnalysis: quality.canAnalysis };
+      const summary = window.DataQualityEngine.summarize(list);
+      // 再取前 3 场代表性缺失字段
+      const analyzeFns = (window.DataQualityEngine.analyze && Array.isArray(list)) ? list.slice(0, 3) : [];
+      const missingMap = {};
+      analyzeFns.forEach(m => {
+        const r = window.DataQualityEngine.analyze(m);
+        if (r && r.missing && r.missing.length) {
+          r.missing.forEach(field => { missingMap[field] = (missingMap[field] || 0) + 1; });
+        }
+      });
+      const missingFields = Object.keys(missingMap).sort((a, b) => missingMap[b] - missingMap[a]);
+      const avgColor = summary.avgScore >= 70 ? "var(--green)" : summary.avgScore >= 55 ? "#b45309" : "var(--red)";
       container.innerHTML = `
         <section class="card section">
           <h2>数据完整度评分</h2>
           <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
-            <div class="summary"><span>当前完整度</span><strong>${quality.score}</strong></div>
-            <div class="summary"><span>总样本数</span><strong>${list.length}</strong></div>
-            <div class="summary"><span>是否可进入风控分析</span><strong style="color:${quality.canAnalysis ? "var(--green)" : "var(--red)"}">${quality.canAnalysis ? "是" : "否"}</strong></div>
+            <div class="summary"><span>总样本数</span><strong>${summary.total}</strong></div>
+            <div class="summary"><span>平均完整度</span><strong style="color:${avgColor}">${summary.avgScore}</strong></div>
+            <div class="summary"><span>可进入正式风控分析</span><strong style="color:var(--green)">${summary.okCount}</strong></div>
+            <div class="summary"><span>需谨慎判断</span><strong style="color:#b45309">${summary.cautiousCount}</strong></div>
+            <div class="summary"><span>数据不足</span><strong style="color:var(--red)">${summary.insufficientCount}</strong></div>
+            <div class="summary"><span>mock / fallback</span><strong style="color:#ea580c">${summary.mockCount}</strong></div>
           </div>
-          <h3 style="margin-top:14px">缺失字段</h3>
+          <h3 style="margin-top:14px">代表性缺失字段（取前 3 场样本统计）</h3>
           <ul style="padding-left:20px;font-size:13px;line-height:1.8;color:#334155;margin-top:6px">
-            ${quality.missing && quality.missing.length ? quality.missing.map(f => `<li>${f}</li>`).join("") : "<li>无缺失 — 关键字段完整</li>"}
+            ${missingFields.length ? missingFields.slice(0, 8).map(f => `<li>${f}（${missingMap[f]} 场缺失）</li>`).join("") : "<li>无缺失 — 关键字段完整</li>"}
           </ul>
           <div class="note" style="margin-top:12px">
             <p><b>说明：</b>完整度评分基于每条比赛的关键字段（赛程/赔率/盘口/比分/阵容/伤停/新闻）综合计算。低于 70 分或标记为 mock 的数据不建议进入自动风控分析。</p>
@@ -1518,6 +1544,7 @@
       currentTournamentId = id;
       localStorage.setItem(TOURNAMENT_STORAGE_KEY, id);
       selectedId = null;
+      renderTournamentBar(); // 刷新顶部赛事信息（注意不覆盖 topbarPill）
       switchModule("workbench", "today");
     }
 
@@ -1544,15 +1571,14 @@
     }
 
     function renderTournamentBar() {
+      const container = $("tournamentBar");
+      if (!container) return;
       const cur = getCurrentTournament();
       const tList = window.TOURNAMENTS;
+      if (!cur || !tList || !tList.length) return;
       const statusCls = cur.status === "已结束" ? "good" : cur.status === "进行中" ? "warn" : "blue";
-      const pill = $("topbarPill");
-      if (pill) {
-        pill.textContent = `${cur.short} · ${cur.status}`;
-        pill.className = `pill ${statusCls}`;
-      }
-      $("tournamentBar").innerHTML = `
+      // topbarPill 保留为"测试版 · mock/fallback"，不再覆盖
+      container.innerHTML = `
         <section class="card section tournament-bar">
           <div class="tournament-row">
             <div>
@@ -1569,17 +1595,21 @@
           </div>
         </section>
       `;
-      $("tournamentSelect").addEventListener("change", e => changeTournament(e.target.value));
+      const sel = $("tournamentSelect");
+      if (sel) sel.addEventListener("change", e => changeTournament(e.target.value));
     }
 
     function renderEmptyState() {
       const cur = getCurrentTournament();
-      $("summaryGrid").innerHTML = "";
-      $("priorityBoard").innerHTML = "";
-      $("backtestDashboard").innerHTML = "";
-      $("dataHealth").innerHTML = "";
-      $("matchTotal").textContent = "0 场";
-      $("matches").innerHTML = `
+      const targets = ["summaryGrid", "priorityBoard", "backtestDashboard", "matchTotal", "matches"];
+      targets.forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        if (id === "matchTotal") el.textContent = "0 场";
+        else el.innerHTML = "";
+      });
+      const matchesEl = $("matches");
+      if (matchesEl) matchesEl.innerHTML = `
         <section class="card section">
           <h2>${cur.name}暂无比赛数据</h2>
           <p>${cur.status === "未开始"
@@ -2435,6 +2465,8 @@
       } catch (e) {
         dataLoadError = e.message;
       }
+      // 渲染全局赛事选择器（顶部主导航上方显示）
+      renderTournamentBar();
       // 默认进"比赛工作台 → 今日比赛"；同时预渲染其它模块的默认 tab
       renderOnTabSwitch("workbench", "today");
       renderOnTabSwitch("model", "cross");
