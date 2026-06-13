@@ -1,5 +1,47 @@
 # 开发记录
 
+## 2026-06-13：preview.html 三大模块重构 + 修复 JS 报错
+
+### 背景
+
+上一轮在 `trae/nightly-dev` 把 preview.html 做成了"明日可落地试用版"，默认有 7 个扁平导航按钮。需要把这些内容重组成三大模块（比赛工作台、模型管理台、数据中心），让页面结构更清晰，同时修复过程中发现的 `r.candidates.join is not a function` JS 报错。
+
+### 本次操作
+
+1. **切到 main + 拉取最新**：从 main commit `6867a57` 新建分支 `trae/three-modules`，确保在最新状态上开发。
+2. **修复 JS 报错**：`engine/score-expander.js` 中 `analyzeMatches()` 把 `candidates` 从对象（`expandScoreZone()` 整体返回）改成真正的候选比分数组（`zone.expanded`）；同时 `preview.html` 渲染处加 `Array.isArray()` 防御。
+3. **三大模块重构**：把 7 个扁平导航按钮改成 3 个大模块 + 每模块内的子 tab。新增 9 个桥接渲染函数（`renderMatchesList`、`renderWorkbenchRisk`、`renderWorkbenchReview`、`renderModelAdviceDashboard`、`renderScoreExpansionDashboard`、`renderModelVersion`、`renderDataSources`、`renderDataQuality`、`renderPendingDecisions`）。
+4. **保留测试版标记**：顶部仍有 "测试版 · 数据为 mock/fallback"，数据中心里明确标注 mock/fallback 状态。
+5. **手机端默认**：默认进入"比赛工作台"的"今日比赛"视图。
+
+### 验证
+
+- ✅ 本地 HTTP 打开 `preview.html`，页面正常渲染
+- ✅ 3 个主导航可切换：比赛工作台、模型管理台、数据中心
+- ✅ 每个模块内子 tab 可切换并正确渲染内容
+- ✅ 浏览器控制台 0 条 JS 报错
+- ✅ 正式 `index.html` 零改动
+- ✅ 正式评分引擎、推荐逻辑、权重零改动
+
+### 改动文件
+
+| 文件 | 类型 | 说明 |
+|---|---|---|
+| `preview.html` | 重构 | 导航三大模块化 + 新增 9 个桥接渲染函数 |
+| `engine/score-expander.js` | bug 修复 | `analyzeMatches()` 中 `candidates` 从对象改为数组 |
+| `NIGHTLY_REPORT.md` | 更新 | 新增本次三大模块重构 + bug 修复报告 |
+| `PROJECT_MEMORY.md` | 新建 | 当前预览版记忆（默认进"比赛工作台·今日比赛"、3 大模块结构等） |
+
+### 边界（没动的东西）
+
+- 正式 `index.html`
+- 正式评分引擎（`engine/scoring.js`、`engine/config.js`）
+- 正式推荐逻辑（`finalPrediction`、`riskControlScore`、`handicapProfile`）
+- 历史样本数据
+- 没有接入真实 API，数据源 adapter 仍在 mock/fallback 模式
+
+---
+
 ## 2026-06-11：第一步工程整理 - 恢复标准目录结构
 
 ### 背景

@@ -212,11 +212,12 @@
   function analyzeMatches(list) {
     return list.map(m => {
       const original = originalCandidateScores(m);
-      const expanded = expandScoreZone(m);
+      const zone = expandScoreZone(m); // zone 是对象，含 .expanded / .original 等数组字段
       return {
         match: m,
         original: original,
-        candidates: expanded,
+        candidates: zone.expanded,      // 真正的候选比分数组（给模板 .join 用）
+        expandedZone: zone,          // 完整对象（给需要详情的场景用）
         originalHit: originalHit(m),
         expandedHit: expandedHit(m)
       };
