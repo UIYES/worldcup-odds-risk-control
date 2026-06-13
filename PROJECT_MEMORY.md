@@ -60,7 +60,14 @@
 - **标题**：世界杯赔率风控分析 · 测试版 (preview)
 - **描述**：今日比赛 / 盘口水位 / 波胆分布 / 历史回测
 - **测试版标签**：右上角橙色 pill — **"测试版 · 数据为 mock/fallback"**
-  - 这个标签不能去掉，用来明确提醒当前页面仍在测试中
+  - 这个标签不能去掉，也不能被覆盖，用来明确提醒当前页面仍在测试中
+
+### 全局赛事选择器（topbar 下方、主导航上方）
+
+- 容器 id：**`tournamentBar`**（全局唯一，不藏在任何模块里）
+- 显示内容：当前赛事名称、状态、下拉选择（2018 / 2022 / 2026）
+- 切换后：影响比赛工作台、模型管理台、数据中心（全部三大模块）
+- **不覆盖** topbarPill（测试版标签独立显示）
 
 ### 三大主导航 + 每模块的子 tab
 
@@ -68,7 +75,7 @@
 |---|---|---|---|
 | **比赛工作台**（默认进入） | 今日比赛、比赛列表、风险与完整度、赛后复盘 | `today / matchList / risk / review` | 日常看比赛、单场分析、赔率盘口摘要、比分候选、进球区间、风险提示、数据完整度、赛后复盘入口 |
 | **模型管理台** | 跨届汇总、回测仪表盘、模型建议、比分覆盖优化、模型版本对比 | `cross / backtest / advice / expansion / version` | 跨届汇总看板、历史回测仪表盘、模型建议、正式模型 vs 模拟模型、模型版本对比、模型升级建议 |
-| **数据中心** | 数据源状态、数据完整度、待确认决策、接入说明 | `source / quality / decisions / about` | A/B/C/D 数据源分级、最后更新时间、mock/fallback 标记、字段缺失、数据完整度评分、PENDING_DECISIONS、API 接入说明 |
+| **数据中心** | 数据源状态、数据完整度、待确认决策、接入说明 | `source / quality / decisions / notes` | A/B/C/D 数据源分级、最后更新时间、mock/fallback 标记、字段缺失、数据完整度评分、PENDING_DECISIONS、API 接入说明 |
 
 ### 两级切换逻辑（修复后）
 
@@ -90,15 +97,26 @@ switchModule(moduleName, tabName)   // 切大模块 + 可选 tab
 
 | 函数 | 所属模块 | 说明 |
 |---|---|---|
-| `renderMatchesList()` | 比赛工作台 | 全部比赛列表（带过滤下拉） |
+| `renderMatchesList()` | 比赛工作台 | 比赛列表（带筛选下拉，仅用于比赛工作台） |
 | `renderWorkbenchRisk()` | 比赛工作台 | 风险/完整度/优先级/数据源状态 |
 | `renderWorkbenchReview()` | 比赛工作台 | 赛后复盘入口 + 命中统计 |
 | `renderModelAdviceDashboard()` | 模型管理台 | 调用正式模型建议逻辑 |
 | `renderScoreExpansionDashboard()` | 模型管理台 | 调用比分覆盖优化逻辑（仅模拟，不影响正式推荐） |
 | `renderModelVersion()` | 模型管理台 | 基线 vs 增强版本对比 |
 | `renderDataSources()` | 数据中心 | 数据源状态 + source-status.json |
-| `renderDataQuality()` | 数据中心 | 数据完整度评分（依赖 engine/data-quality.js） |
+| `renderDataQuality()` | 数据中心 | 数据完整度汇总（用 `DataQualityEngine.summarize(list)`，不是单场 analyze） |
 | `renderPendingDecisions()` | 数据中心 | 待你确认的决策事项列表 |
+
+### 关键的数据获取函数（别混用）
+
+| 函数 | 用途 | 说明 |
+|---|---|---|
+| `getMatches()` | 当前赛事全部比赛 | 最底层，直接读取当前赛事的比赛数组 |
+| `getCurrentMatches()` | 当前赛事全部比赛（推荐写法） | 语义明确，**模型管理台必须用它**，不受列表筛选影响 |
+| `getFilteredMatchList()` | 比赛列表 tab 专用 | 读取 stageFilter 下拉筛选后的比赛，**仅限比赛工作台** |
+| `filteredMatches()` | 向后兼容 | 已不推荐在模型管理台使用，逐步切换 |
+
+**重要规则**：在"模型管理台"做回测、模型建议、比分覆盖优化时，不能读取比赛工作台的筛选器，否则样本会偷偷减少，回测结果不可靠。
 
 ---
 
