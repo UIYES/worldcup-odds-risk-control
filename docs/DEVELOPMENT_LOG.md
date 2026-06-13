@@ -1,5 +1,105 @@
 # 开发记录
 
+## 2026-06-13：修复三大模块切换逻辑 bug + 补齐 PROJECT_MEMORY.md 复盘规则
+
+### 背景
+
+在做"项目记忆补齐 + 二次验收"时发现两个 bug：
+
+**Bug 1**：`preview.html` 中 `switchModule('model')` 或 `switchModule('data')` 时，如果没传 tabName，默认用的是 `workbenchTab`（可能是 `today`），但模型管理台的默认子 tab 应该是 `cross`（跨届汇总），数据中心的默认子 tab 应该是 `source`（数据源状态）。导致切到"模型管理台"时，会试图找一个不存在的 `model-today` 子视图，内容不显示。
+
+**Bug 2**：`switchSubTab()` 中 `workbenchTab = tabName`——不管用户在哪个模块切 tab，都存到 `workbenchTab` 里。导致：用户在"模型管理台"切了 `cross` 后，`workbenchTab` 变成了 `cross`，再切回"比赛工作台"时，会试图找 `workbench-cross`，但比赛工作台的子 tab 是 `today/matchList/risk/review`，**没有** `cross`！
+
+**PROJECT_MEMORY.md 遗漏**：只有页面结构信息，缺少你强调的 5 条复盘规则——比分命中≠方案成功、没有临盘复测不能简单说模型错、美国4-1巴拉圭是方向对但比分强度错、每场要分早盘/临盘/赛后、复盘要区分"分析命中"和"方案是否划算"。
+
+### 本次操作
+
+1. **修复切换逻辑**：为每个模块声明独立的 tab 状态变量和默认值
+   - `workbenchTab = 'today'`（比赛工作台默认：今日比赛）
+   - `modelTab = 'cross'`（模型管理台默认：跨届汇总）
+   - `dataTab = 'source'`（数据中心默认：数据源状态）
+   - 新增 `getModuleTab(moduleName)` 和 `setModuleTab(moduleName, tabName)` 两个辅助函数
+   - `switchModule()` 中用 `tabName || getModuleTab(moduleName)` 作为默认 tab
+   - `switchSubTab()` 中用 `setModuleTab(moduleName, tabName)` 保存 tab 状态
+
+2. **补齐 PROJECT_MEMORY.md**：
+   - 项目根本定位：不是猜比分工具，是赔率/盘口/水位/波胆风控分析工具
+   - 不能动的东西：正式 index.html、正式模型、正式权重、正式推荐逻辑
+   - 当前 preview.html 是测试页，三大模块结构说明
+   - 已测试 4 场比赛记录（墨西哥2-0南非、韩国2-1捷克、加拿大1-1波黑、美国4-1巴拉圭）
+   - 5 条复盘规则（早盘/临盘/赛后、无临盘复测不能说模型错、美国4-1教训、比分命中≠方案成功、区分"分析命中"和"方案是否划算"）
+   - mock/fallback 标记约定、数据源可信度分级、下一步方向
+
+### 验证结果（完整路径验证）
+
+| 模块 | 子 tab 序列 | 结果 |
+|---|---|---|
+| 比赛工作台 | 今日比赛 → 比赛列表 → 风险与完整度 → 赛后复盘 | ✅ 全部正常显示 |
+| 模型管理台 | 跨届汇总（默认）→ 回测仪表盘 → 模型建议 → 比分覆盖优化 → 模型版本对比 | ✅ 全部正常显示 |
+| 数据中心 | 数据源状态（默认）→ 数据完整度 → 待确认决策 → 接入说明 | ✅ 全部正常显示 |
+| 跨模块切换 | 数据中心 → 比赛工作台 → 今日比赛 | ✅ 各模块独立 tab 状态正常 |
+| 浏览器控制台 | error/warning 数量 | ✅ 0 条 JS error，0 条 JS warning |
+
+### 改动文件
+
+| 文件 | 类型 | 说明 |
+|---|---|---|
+| `preview.html` | bug 修复 | 切换逻辑：各模块独立 tab 状态变量 + 默认值 |
+| `PROJECT_MEMORY.md` | 增补 | 加入复盘规则、4 场测试比赛记录、不变边界 |
+
+### 边界（没动的东西）
+
+- ✅ 正式 `index.html` — 零改动
+- ✅ 正式评分引擎 — 零改动
+- ✅ 正式权重配置 — 零改动
+- ✅ 正式推荐逻辑（finalPrediction / riskControlScore / handicapProfile）— 零改动
+- ✅ 历史样本数据 — 零改动
+- ✅ `engine/score-expander.js` — 零改动（之前已修复 candidates.join bug）
+
+---
+
+## 2026-06-13：preview.html 三大模块重构 + 修复 JS 报错
+
+### 背景
+
+上一轮在 `trae/nightly-dev` 把 preview.html 做成了"明日可落地试用版"，默认有 7 个扁平导航按钮。需要把这些内容重组成三大模块（比赛工作台、模型管理台、数据中心），让页面结构更清晰，同时修复过程中发现的 `r.candidates.join is not a function` JS 报错。
+
+### 本次操作
+
+1. **切到 main + 拉取最新**：从 main commit `6867a57` 新建分支 `trae/three-modules`，确保在最新状态上开发。
+2. **修复 JS 报错**：`engine/score-expander.js` 中 `analyzeMatches()` 把 `candidates` 从对象（`expandScoreZone()` 整体返回）改成真正的候选比分数组（`zone.expanded`）；同时 `preview.html` 渲染处加 `Array.isArray()` 防御。
+3. **三大模块重构**：把 7 个扁平导航按钮改成 3 个大模块 + 每模块内的子 tab。新增 9 个桥接渲染函数（`renderMatchesList`、`renderWorkbenchRisk`、`renderWorkbenchReview`、`renderModelAdviceDashboard`、`renderScoreExpansionDashboard`、`renderModelVersion`、`renderDataSources`、`renderDataQuality`、`renderPendingDecisions`）。
+4. **保留测试版标记**：顶部仍有 "测试版 · 数据为 mock/fallback"，数据中心里明确标注 mock/fallback 状态。
+5. **手机端默认**：默认进入"比赛工作台"的"今日比赛"视图。
+
+### 验证
+
+- ✅ 本地 HTTP 打开 `preview.html`，页面正常渲染
+- ✅ 3 个主导航可切换：比赛工作台、模型管理台、数据中心
+- ✅ 每个模块内子 tab 可切换并正确渲染内容
+- ✅ 浏览器控制台 0 条 JS 报错
+- ✅ 正式 `index.html` 零改动
+- ✅ 正式评分引擎、推荐逻辑、权重零改动
+
+### 改动文件
+
+| 文件 | 类型 | 说明 |
+|---|---|---|
+| `preview.html` | 重构 | 导航三大模块化 + 新增 9 个桥接渲染函数 |
+| `engine/score-expander.js` | bug 修复 | `analyzeMatches()` 中 `candidates` 从对象改为数组 |
+| `NIGHTLY_REPORT.md` | 更新 | 新增本次三大模块重构 + bug 修复报告 |
+| `PROJECT_MEMORY.md` | 新建 | 当前预览版记忆（默认进"比赛工作台·今日比赛"、3 大模块结构等） |
+
+### 边界（没动的东西）
+
+- 正式 `index.html`
+- 正式评分引擎（`engine/scoring.js`、`engine/config.js`）
+- 正式推荐逻辑（`finalPrediction`、`riskControlScore`、`handicapProfile`）
+- 历史样本数据
+- 没有接入真实 API，数据源 adapter 仍在 mock/fallback 模式
+
+---
+
 ## 2026-06-11：第一步工程整理 - 恢复标准目录结构
 
 ### 背景

@@ -220,6 +220,44 @@
     .view { display: none; }
     .view.active { display: block; }
 
+    /* 三大模块 & 二级标签 */
+    .module { display: none; margin-bottom: 14px; }
+    .module.active { display: block; }
+    .sub-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .sub-tab {
+      padding: 6px 10px;
+      background: #fff;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .sub-tab:hover { background: #f1f5f9; color: var(--text); }
+    .sub-tab.active {
+      background: #eff6ff;
+      color: var(--blue);
+      border-color: #bfdbfe;
+    }
+    .sub-view { display: none; }
+    .sub-view.active { display: block; }
+
+    /* 手机端：主导航按钮 / 子标签更紧凑 */
+    @media (max-width: 640px) {
+      .nav-btn { font-size: 12px; padding: 8px 6px; min-width: 60px; }
+      .sub-tab { font-size: 11px; padding: 5px 8px; }
+    }
+
     .match {
       padding: 12px 14px;
       cursor: pointer;
@@ -789,73 +827,114 @@
     </div>
 
     <nav class="nav" id="navBar">
-      <button class="nav-btn active" data-view="today">今日比赛</button>
-      <button class="nav-btn" data-view="overview">赛事总览</button>
-      <button class="nav-btn" data-view="crossTournament">跨届汇总</button>
-      <button class="nav-btn" data-view="backtest">回测复盘</button>
-      <button class="nav-btn" data-view="advice">模型建议</button>
-      <button class="nav-btn" data-view="matches">比赛列表</button>
-      <button class="nav-btn" data-view="sourceStatus">2026 数据</button>
+      <button class="nav-btn active" data-module="workbench">比赛工作台</button>
+      <button class="nav-btn" data-module="model">模型管理台</button>
+      <button class="nav-btn" data-module="data">数据中心</button>
     </nav>
 
-    <!-- 视图 0：今日比赛（手机端优先展示 -->
-    <section id="view-today" class="view active">
-      <div id="todayDateBar"></div>
-      <div id="todayMatches"></div>
-    </section>
-
-    <!-- 视图 1：赛事总览 -->
-    <section id="view-overview" class="view">
-      <div id="tournamentBar"></div>
-      <div id="sourceStatusBar"></div>
-      <div class="summary-grid" id="summaryGrid"></div>
-      <div class="board" id="priorityBoard"></div>
-    </section>
-
-    <!-- 视图 2：跨届汇总 -->
-    <section id="view-crossTournament" class="view">
-      <div id="crossTournamentDashboard"></div>
-    </section>
-
-    <!-- 视图 3：回测复盘 -->
-    <section id="view-backtest" class="view">
-      <div id="dataHealth"></div>
-      <div id="backtestDashboard"></div>
-    </section>
-
-    <!-- 视图 4：模型建议 -->
-    <section id="view-advice" class="view">
-      <div id="modelAdvice"></div>
-      <div id="scoreExpansion"></div>
-    </section>
-
-    <!-- 视图 5：比赛列表 -->
-    <section id="view-matches" class="view">
-      <div class="toolbar">
-        <select id="stageFilter">
-          <option value="全部">全部阶段</option>
-          <option value="小组赛">小组赛</option>
-          <option value="淘汰赛">淘汰赛</option>
-          <option value="决赛">决赛</option>
-        </select>
+    <!-- 模块 1：比赛工作台（日常看比赛，默认打开） -->
+    <section id="module-workbench" class="module active">
+      <div class="sub-nav" data-module="workbench">
+        <button class="sub-tab active" data-tab="today">今日比赛</button>
+        <button class="sub-tab" data-tab="matchList">比赛列表</button>
+        <button class="sub-tab" data-tab="risk">风险与完整度</button>
+        <button class="sub-tab" data-tab="review">赛后复盘</button>
       </div>
-      <div class="topbar">
-        <div>
-          <h2>全部比赛</h2>
-          <p>列表保持紧凑，详细分析点进去看。</p>
+      <div class="sub-view active" data-view="workbench-today">
+        <div id="todayDateBar"></div>
+        <div id="todayMatches"></div>
+      </div>
+      <div class="sub-view" data-view="workbench-matchList">
+        <div class="toolbar">
+          <select id="stageFilter">
+            <option value="全部">全部阶段</option>
+            <option value="小组赛">小组赛</option>
+            <option value="淘汰赛">淘汰赛</option>
+            <option value="决赛">决赛</option>
+          </select>
         </div>
-        <span class="pill" id="matchTotal"></span>
+        <div class="topbar">
+          <div>
+            <h2>全部比赛</h2>
+            <p>列表保持紧凑，详细分析点进去看。</p>
+          </div>
+          <span class="pill" id="matchTotal"></span>
+        </div>
+        <div class="matches" id="matches"></div>
       </div>
-      <div class="matches" id="matches"></div>
+      <div class="sub-view" data-view="workbench-risk">
+        <div id="sourceStatusBar"></div>
+        <div class="summary-grid" id="summaryGrid"></div>
+        <div class="board" id="priorityBoard"></div>
+      </div>
+      <div class="sub-view" data-view="workbench-review">
+        <div id="workbenchReview"></div>
+      </div>
     </section>
 
-    <!-- 视图 6：2026 数据状态 -->
-    <section id="view-sourceStatus" class="view">
-      <div id="sourceStatusBar-2"></div>
-      <div class="card section">
-        <h3>数据源调研</h3>
-        <p style="color:#475569;font-size:13px;margin:6px 0 0 0">以下数据源是调研阶段列出的候选。接入新数据源前，必须在 PENDING_DECISIONS.md 中说明问题 / 证据 / 建议 / 好处 / 风险，等你确认后再改。</p>
-        <ul id="sourceList" style="margin:14px 0 0 0;padding-left:18px;font-size:14px;line-height:1.8"></ul>
+    <!-- 模块 2：模型管理台（模型自我成长 / 回测） -->
+    <section id="module-model" class="module">
+      <div class="sub-nav" data-module="model">
+        <button class="sub-tab active" data-tab="cross">跨届汇总</button>
+        <button class="sub-tab" data-tab="backtest">回测仪表盘</button>
+        <button class="sub-tab" data-tab="advice">模型建议</button>
+        <button class="sub-tab" data-tab="expansion">比分覆盖优化</button>
+        <button class="sub-tab" data-tab="version">模型版本对比</button>
+      </div>
+      <div class="sub-view active" data-view="model-cross">
+        <div id="crossTournamentDashboard"></div>
+      </div>
+      <div class="sub-view" data-view="model-backtest">
+        <div id="backtestDashboard"></div>
+      </div>
+      <div class="sub-view" data-view="model-advice">
+        <div id="modelAdvice"></div>
+      </div>
+      <div class="sub-view" data-view="model-expansion">
+        <div id="scoreExpansion"></div>
+      </div>
+      <div class="sub-view" data-view="model-version">
+        <div id="modelVersionDashboard"></div>
+      </div>
+    </section>
+
+    <!-- 模块 3：数据中心（判断数据是否可信） -->
+    <section id="module-data" class="module">
+      <div class="sub-nav" data-module="data">
+        <button class="sub-tab active" data-tab="source">数据源状态</button>
+        <button class="sub-tab" data-tab="quality">数据完整度</button>
+        <button class="sub-tab" data-tab="decisions">待确认决策</button>
+        <button class="sub-tab" data-tab="notes">接入说明</button>
+      </div>
+      <div class="sub-view active" data-view="data-source">
+        <div id="sourceStatusBar-2"></div>
+        <div class="card section">
+          <h3>数据源调研</h3>
+          <p style="color:#475569;font-size:13px;margin:6px 0 0 0">以下数据源是调研阶段列出的候选。接入新数据源前，必须在 PENDING_DECISIONS.md 中说明问题 / 证据 / 建议 / 好处 / 风险，等你确认后再改。</p>
+          <ul id="sourceList" style="margin:14px 0 0 0;padding-left:18px;font-size:14px;line-height:1.8"></ul>
+        </div>
+      </div>
+      <div class="sub-view" data-view="data-quality">
+        <div id="dataQualityDashboard"></div>
+      </div>
+      <div class="sub-view" data-view="data-decisions">
+        <div id="pendingDecisions"></div>
+      </div>
+      <div class="sub-view" data-view="data-notes">
+        <div class="card section" id="dataNotes">
+          <h2>API / 数据源接入说明</h2>
+          <p style="color:#475569;font-size:13px;margin-top:8px;line-height:1.7">
+            当前预览版的数据来自 mock/fallback，真实接入前请确认：
+          </p>
+          <ul style="margin-top:12px;padding-left:22px;font-size:13px;color:#475569;line-height:1.9">
+            <li>① 数据源是否有明确的 API 文档和稳定接口</li>
+            <li>② 是否有免费额度或可接受的成本</li>
+            <li>③ 条款是否允许自动化调用和 GitHub Actions 集成</li>
+            <li>④ 不要为了"免费"牺牲准确度和可靠性</li>
+            <li>⑤ 不要抓取无明确 API / 有反爬限制 / 条款不清的来源</li>
+            <li>⑥ 接入新源前先写入 PENDING_DECISIONS.md 等你确认</li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -1096,32 +1175,114 @@
 
     const $ = (id) => document.getElementById(id);
 
-    // 多视图切换
-    function switchView(viewName) {
-      currentView = viewName;
+    // ===== 三大模块切换 =====
+    // 关键：每个大模块有自己独立的默认子 tab 和独立的状态变量，
+    //      避免从"比赛工作台"切到"模型管理台"时 tab 状态错乱。
+    // 当前状态：{ module: 'workbench'|'model'|'data', tab: 'xxx' }
+    let currentModule = "workbench";
+    let workbenchTab = "today";   // 比赛工作台默认：今日比赛
+    let modelTab = "cross";       // 模型管理台默认：跨届汇总
+    let dataTab = "source";       // 数据中心默认：数据源状态
+
+    // 取指定模块的当前 tab
+    function getModuleTab(moduleName) {
+      if (moduleName === "workbench") return workbenchTab;
+      if (moduleName === "model") return modelTab;
+      if (moduleName === "data") return dataTab;
+      return workbenchTab;
+    }
+
+    // 存指定模块的 tab
+    function setModuleTab(moduleName, tabName) {
+      if (moduleName === "workbench") workbenchTab = tabName;
+      else if (moduleName === "model") modelTab = tabName;
+      else if (moduleName === "data") dataTab = tabName;
+    }
+
+    function switchModule(moduleName, tabName) {
+      currentModule = moduleName;
+
+      // 顶部主导航
       const navBar = $("navBar");
       if (navBar) {
         navBar.querySelectorAll(".nav-btn").forEach(btn => {
-          btn.classList.toggle("active", btn.dataset.view === viewName);
+          btn.classList.toggle("active", btn.dataset.module === moduleName);
         });
       }
-      ["today", "overview", "crossTournament", "backtest", "advice", "matches", "sourceStatus"].forEach(v => {
-        const el = $("view-" + v);
-        if (el) el.classList.toggle("active", v === viewName);
+
+      // 显示对应的大模块
+      ["workbench", "model", "data"].forEach(m => {
+        const el = $("module-" + m);
+        if (el) el.classList.toggle("active", m === moduleName);
       });
-      $("detailScreen").classList.add("hidden");
-      if (viewName === "today") renderTodayMatches();
+
+      // 在当前模块内切换到指定 sub-tab
+      // 规则：传了 tabName 用 tabName；否则用该模块自己的默认 tab
+      switchSubTab(moduleName, tabName || getModuleTab(moduleName));
+
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // 绑定导航按钮
+    function switchSubTab(moduleName, tabName) {
+      if (!tabName) return;
+      setModuleTab(moduleName, tabName);
+      const container = $("module-" + moduleName);
+      if (!container) return;
+
+      // 更新 sub-tab 按钮高亮
+      container.querySelectorAll(".sub-tab").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabName);
+      });
+
+      // 切换 sub-view 显示
+      container.querySelectorAll(".sub-view").forEach(v => {
+        v.classList.toggle("active", v.dataset.view === moduleName + "-" + tabName);
+      });
+
+      // 根据 tab 按需触发渲染
+      renderOnTabSwitch(moduleName, tabName);
+    }
+
+    function renderOnTabSwitch(moduleName, tabName) {
+      if (moduleName === "workbench") {
+        if (tabName === "today") renderTodayMatches();
+        if (tabName === "matchList") renderMatchesList();
+        if (tabName === "risk") renderWorkbenchRisk();
+        if (tabName === "review") renderWorkbenchReview();
+      }
+      if (moduleName === "model") {
+        if (tabName === "cross") renderCrossTournamentDashboard();
+        if (tabName === "backtest") {
+          const list = filteredMatches();
+          renderBacktestDashboard(list);
+        }
+        if (tabName === "advice") renderModelAdviceDashboard();
+        if (tabName === "expansion") renderScoreExpansionDashboard();
+        if (tabName === "version") renderModelVersion();
+      }
+      if (moduleName === "data") {
+        if (tabName === "source") renderDataSources();
+        if (tabName === "quality") renderDataQuality();
+        if (tabName === "decisions") renderPendingDecisions();
+      }
+    }
+
+    // 绑定主导航按钮
     document.addEventListener("DOMContentLoaded", () => {
       const navBar = $("navBar");
       if (navBar) {
         navBar.querySelectorAll(".nav-btn").forEach(btn => {
-          btn.addEventListener("click", () => switchView(btn.dataset.view));
+          btn.addEventListener("click", () => switchModule(btn.dataset.module));
         });
       }
+      // 绑定每个模块的 sub-tab 按钮
+      ["workbench", "model", "data"].forEach(m => {
+        const container = $("module-" + m);
+        if (!container) return;
+        container.querySelectorAll(".sub-tab").forEach(btn => {
+          btn.addEventListener("click", () => switchSubTab(m, btn.dataset.tab));
+        });
+      });
     });
 
     function filteredMatches() {
@@ -1131,12 +1292,233 @@
       return stage === "全部" ? list : list.filter(m => m.stage === stage);
     }
 
+    // ===== 三大模块 bridge：把原来的大块渲染拆成按需触发 =====
+
+    // 比赛工作台 → 比赛列表（全部比赛 + 过滤）
+    function renderMatchesList() {
+      const list = filteredMatches();
+      const scored = list.map(m => ({
+        match: m,
+        risk: riskControlScore(m),
+        profile: handicapProfile(m),
+        final: finalPrediction(m),
+        intent: getLineIntent(m)
+      }));
+      const totalEl = $("matchTotal");
+      if (totalEl) totalEl.textContent = `${scored.length} 场`;
+      const matchesEl = $("matches");
+      if (!matchesEl) return;
+      if (!scored.length) {
+        matchesEl.innerHTML = `<section class="card section"><h2>暂无比赛数据</h2><p style="color:#475569">当前赛事还没有可分析的比赛数据。</p></section>`;
+        return;
+      }
+      matchesEl.innerHTML = scored.map(({ match: m, risk, profile, final, intent }) => {
+        const goal = bestGoal(m);
+        return `
+          <article class="card match" onclick="openMatch(${m.id})">
+            <div class="match-line">
+              <div>
+                <div class="teams">${m.home} vs ${m.away}</div>
+                <div class="match-meta">
+                  <span class="pill">${m.date}</span>
+                  <span class="pill">${m.stage}</span>
+                  <span class="pill ${risk.total >= 72 ? "good" : risk.total >= 55 ? "warn" : "bad"}">${risk.action}</span>
+                </div>
+              </div>
+              <span class="pill ${profile.upset > 60 ? "warn" : "blue"}">冷门 ${profile.upset}%</span>
+            </div>
+            <div class="decision-strip">
+              <div class="decision-item"><span>风控分</span><strong>${risk.total} · ${risk.riskLevel}</strong></div>
+              <div class="decision-item"><span>方向</span><strong>${final.direction}</strong></div>
+              <div class="decision-item"><span>盘口意图</span><strong>${intent.type}</strong></div>
+              <div class="decision-item"><span>比分</span><strong>${final.scoreZone.split(" / ")[0]}</strong></div>
+              <div class="decision-item"><span>进球</span><strong>${goal[0]}</strong></div>
+              <div class="decision-item"><span>最终比分</span><strong>${displayResult(m) || "未结束"}</strong></div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    // 比赛工作台 → 风险与完整度（summary grid + priority board）
+    function renderWorkbenchRisk() {
+      const list = filteredMatches();
+      const container = $("summaryGrid");
+      if (container) {
+        const scored = list.map(m => ({ match: m, risk: riskControlScore(m), profile: handicapProfile(m) }));
+        const focus = scored.filter(x => x.risk.total >= 72).length;
+        const wait = scored.filter(x => x.risk.total >= 55 && x.risk.total < 72).length;
+        const filter = scored.filter(x => x.risk.total < 55).length;
+        const highUpset = scored.filter(x => x.profile.upset > 60).length;
+        container.innerHTML = [
+          ["重点跟踪", `${focus}场`],
+          ["等待确认", `${wait}场`],
+          ["建议过滤", `${filter}场`],
+          ["高冷门", `${highUpset}场`]
+        ].map(([k, v]) => `<div class="summary"><span>${k}</span><strong>${v}</strong></div>`).join("");
+      }
+      if (list.length) {
+        const scored = list.map(m => ({
+          match: m,
+          risk: riskControlScore(m),
+          profile: handicapProfile(m),
+          final: finalPrediction(m),
+          intent: getLineIntent(m)
+        }));
+        renderPriorityBoard(scored);
+      }
+      renderSourceStatus();
+    }
+
+    // 比赛工作台 → 赛后复盘入口
+    function renderWorkbenchReview() {
+      const list = getMatches().filter(m => m.actual);
+      const container = $("workbenchReview");
+      if (!container) return;
+      if (!list.length) {
+        container.innerHTML = `<section class="card section"><h2>赛后复盘</h2><p style="color:#475569">当前还没有已结束的比赛样本。当有真实比赛结果后，这里会自动列出可复盘的比赛。</p></section>`;
+        return;
+      }
+      const stats = {
+        total: list.length,
+        correctDir: list.filter(m => finalPrediction(m).direction === "主队胜" && m.finalScore && m.finalScore.startsWith(m.home)).length
+          + list.filter(m => finalPrediction(m).direction === "客队方向" && m.finalScore && m.finalScore.startsWith(m.away)).length,
+        correctScore: list.filter(m => finalPrediction(m).scoreZone.includes(m.finalScore || m.actual)).length
+      };
+      container.innerHTML = `
+        <section class="card section">
+          <h2>赛后复盘入口</h2>
+          <p style="color:#475569;font-size:13px;margin-top:6px">已结束比赛 ${stats.total} 场 · 方向命中 ${stats.correctDir} 场 · 比分命中 ${stats.correctScore} 场</p>
+          <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
+            <div class="summary"><span>总样本</span><strong>${stats.total}</strong></div>
+            <div class="summary"><span>方向命中</span><strong>${stats.correctDir}</strong></div>
+            <div class="summary"><span>比分命中</span><strong>${stats.correctScore}</strong></div>
+          </div>
+          <ul style="margin-top:14px;padding-left:20px;font-size:13px;line-height:1.9;color:#334155">
+            ${list.map(m => `<li>${m.home} vs ${m.away} — 实际比分：<strong>${m.finalScore || m.actual}</strong> · 推荐方向：<span class="pill blue" style="display:inline-block;padding:2px 8px">${finalPrediction(m).direction}</span></li>`).join("")}
+          </ul>
+        </section>
+      `;
+    }
+
+    // 模型管理台 → 模型建议（无参数版）
+    function renderModelAdviceDashboard() {
+      const list = filteredMatches();
+      renderModelAdvice(list);
+    }
+
+    // 模型管理台 → 比分覆盖优化（无参数版）
+    function renderScoreExpansionDashboard() {
+      const list = filteredMatches();
+      renderScoreExpansion(list);
+    }
+
+    // 模型管理台 → 模型版本对比
+    function renderModelVersion() {
+      const container = $("modelVersionDashboard");
+      if (!container) return;
+      const list = filteredMatches();
+      const basicCount = list.length;
+      const enrichedCount = list.filter(m => m.handicap && m.handicap.timeline && m.handicap.timeline.length > 1).length;
+      container.innerHTML = `
+        <section class="card section">
+          <h2>模型版本对比</h2>
+          <p style="color:#475569;font-size:13px;margin-top:6px">这里简单对比"基线版本"与"增强版本"在当前数据上的可用情况。正式权重/逻辑不做改动。</p>
+          <div class="summary-grid" style="grid-template-columns:repeat(2,1fr);margin-top:12px">
+            <div class="summary"><span>基线版本（基础字段）</span><strong>${basicCount} 场可用</strong></div>
+            <div class="summary"><span>增强版本（含盘口时序）</span><strong>${enrichedCount} 场可用</strong></div>
+          </div>
+          <div class="note" style="margin-top:12px">
+            <p><b>差异点：</b>增强版本需要完整的 handicap.timeline 盘口时序数据。当前数据大部分是 mock，因此增强版本的覆盖依赖数据源的完善。</p>
+          </div>
+        </section>
+      `;
+    }
+
+    // 数据中心 → 数据源状态（含 sourceStatusBar + sourceList）
+    function renderDataSources() {
+      renderSourceStatus();
+      renderSourceList2();
+      // 也补一下 data-quality 的可视化
+      if (window.SOURCE_STATUS && $("sourceStatusBar-2")) {
+        const s = window.SOURCE_STATUS;
+        const items = Array.isArray(s) ? s : (s.sources || []);
+        if (items.length) {
+          const total = items.length;
+          const mockCount = items.filter(x => x.isMock || x.tier === "D").length;
+          const realCount = total - mockCount;
+          const bar = $("sourceStatusBar-2");
+          if (bar && !bar.innerHTML.trim()) {
+            bar.innerHTML = `
+              <section class="card section">
+                <h2>数据源可信度总览</h2>
+                <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+                  <div class="summary"><span>数据源总数</span><strong>${total}</strong></div>
+                  <div class="summary"><span>真实/半真实数据</span><strong>${realCount}</strong></div>
+                  <div class="summary"><span>mock / fallback</span><strong style="color:#ea580c">${mockCount}</strong></div>
+                </div>
+              </section>
+            `;
+          }
+        }
+      }
+    }
+
+    // 数据中心 → 数据完整度评分（调用 engine/data-quality.js）
+    function renderDataQuality() {
+      const container = $("dataQualityDashboard");
+      if (!container) return;
+      const list = getMatches();
+      if (!window.DataQualityEngine || typeof window.DataQualityEngine.analyze !== "function") {
+        container.innerHTML = `<section class="card section"><h2>数据完整度评分</h2><p style="color:#475569">engine/data-quality.js 未加载或版本不匹配，暂时无法评估。</p></section>`;
+        return;
+      }
+      const quality = window.DataQualityEngine.analyze(list[0] || {});
+      const summary = window.DataQualityEngine.summary ? window.DataQualityEngine.summary(list) : { score: quality.score, missing: quality.missing, canAnalysis: quality.canAnalysis };
+      container.innerHTML = `
+        <section class="card section">
+          <h2>数据完整度评分</h2>
+          <div class="summary-grid" style="grid-template-columns:repeat(3,1fr);margin-top:10px">
+            <div class="summary"><span>当前完整度</span><strong>${quality.score}</strong></div>
+            <div class="summary"><span>总样本数</span><strong>${list.length}</strong></div>
+            <div class="summary"><span>是否可进入风控分析</span><strong style="color:${quality.canAnalysis ? "var(--green)" : "var(--red)"}">${quality.canAnalysis ? "是" : "否"}</strong></div>
+          </div>
+          <h3 style="margin-top:14px">缺失字段</h3>
+          <ul style="padding-left:20px;font-size:13px;line-height:1.8;color:#334155;margin-top:6px">
+            ${quality.missing && quality.missing.length ? quality.missing.map(f => `<li>${f}</li>`).join("") : "<li>无缺失 — 关键字段完整</li>"}
+          </ul>
+          <div class="note" style="margin-top:12px">
+            <p><b>说明：</b>完整度评分基于每条比赛的关键字段（赛程/赔率/盘口/比分/阵容/伤停/新闻）综合计算。低于 70 分或标记为 mock 的数据不建议进入自动风控分析。</p>
+          </div>
+        </section>
+      `;
+    }
+
+    // 数据中心 → 待确认决策（从 PENDING_DECISIONS.md 读入后展示）
+    function renderPendingDecisions() {
+      const container = $("pendingDecisions");
+      if (!container) return;
+      // 暂时展示静态说明（真实接入需 fetch PENDING_DECISIONS.md）
+      container.innerHTML = `
+        <section class="card section">
+          <h2>待确认决策（PENDING_DECISIONS.md）</h2>
+          <p style="color:#475569;font-size:13px;margin-top:6px">以下事项需你确认后再推进。改动前会有明确的提案说明。</p>
+          <ul style="margin-top:12px;padding-left:20px;font-size:13px;line-height:1.9;color:#334155">
+            <li>① 是否启用赔率数据源（如 API-Football / The Odds API）— 当前未启用</li>
+            <li>② 是否定时触发 GitHub Actions 自动刷新数据 — 当前手动触发</li>
+            <li>③ 2026 世界杯赛程出来后，是否把 preview.html 升级为正式首页 — 当前仍是测试版</li>
+            <li>④ 是否使用非官方网页抓取比赛数据（不建议）— 当前仅用官方或有 API 的源</li>
+            <li>⑤ 比分覆盖优化的候选策略是否纳入正式模型（当前仅在"模型管理台"做对比展示）— 当前未纳入</li>
+          </ul>
+        </section>
+      `;
+    }
+
     function changeTournament(id) {
       currentTournamentId = id;
       localStorage.setItem(TOURNAMENT_STORAGE_KEY, id);
       selectedId = null;
-      switchView("overview");
-      renderOverview();
+      switchModule("workbench", "today");
     }
 
     function bestGoal(match) {
@@ -1976,7 +2358,7 @@
                   <tr>
                     <td style="padding:4px">${r.match.home} vs ${r.match.away}</td>
                     <td style="padding:4px">${r.match.actual}</td>
-                    <td style="padding:4px">${r.candidates.join(", ")}</td>
+                    <td style="padding:4px">${Array.isArray(r.candidates) ? r.candidates.join(", ") : "（数据格式异常，已跳过）"}</td>
                     <td style="padding:4px;color:${r.expandedHit ? "var(--green)" : "var(--red)"}">${r.expandedHit ? "是" : "否"}</td>
                   </tr>`).join("")}
               </table>
@@ -2032,7 +2414,7 @@
       `).join("");
     }
 
-    $("stageFilter").addEventListener("change", renderOverview);
+    $("stageFilter").addEventListener("change", renderMatchesList);
 
     // 异步启动：先尝试加载 data/matches-2026.json 和 data/source-status.json，
     // 失败时回退到 data/matches-2026.js 的静态数据。
@@ -2053,8 +2435,10 @@
       } catch (e) {
         dataLoadError = e.message;
       }
-      renderOverview();
-      renderTodayMatches();
+      // 默认进"比赛工作台 → 今日比赛"；同时预渲染其它模块的默认 tab
+      renderOnTabSwitch("workbench", "today");
+      renderOnTabSwitch("model", "cross");
+      renderOnTabSwitch("data", "source");
     }
     bootstrap();
   </script>
