@@ -1,5 +1,47 @@
 # 开发记录
 
+## 2026-06-13：合并前修补 — 补回赛事选择器 / 修数据完整度汇总 / 拆筛选器
+
+### 发现的 6 个问题
+
+**问题 1**：页面里没有 `id="tournamentBar"` 容器，赛事选择器根本看不到
+**问题 2**：`renderTournamentBar()` 用 `topbarPill.textContent = "..."` 覆盖掉 mock/fallback 测试版标签
+**问题 3**：`renderDataQuality()` 用 `window.DataQualityEngine.summary`，但引擎只暴露 `summarize(list)`，且只分析第一场
+**问题 4**：`renderEmptyState()` 里 `$("dataHealth").innerHTML = ""`，新页面根本没有 `dataHealth`
+**问题 5**：`PROJECT_MEMORY.md` 写数据中心 tab 是 `about`，代码里是 `notes`
+**问题 6**：模型管理台（回测 / 模型建议 / 比分覆盖优化 / 版本对比）用 `filteredMatches()`，它读取比赛工作台的 `stageFilter` 下拉——用户在比赛列表筛选了某阶段，模型管理台的回测样本也被偷偷减少，**这会导致回测结果不可靠**
+
+### 本次修复
+
+1. **HTML 结构**：在顶部 topbar 和主导航之间加 `id="tournamentBar"` 容器
+2. **`renderTournamentBar()`**：加空值保护（容器 / cur / 列表不存在就返回），**不再覆盖 topbarPill**
+3. **bootstrap()**：调用 `renderTournamentBar()` 初始化赛事选择器
+4. **`changeTournament()`**：切届后也刷新 tournamentBar
+5. **`renderDataQuality()`**：统一用 `DataQualityEngine.summarize(list)` 做汇总；展示总样本、平均完整度、可进入风控、需谨慎、数据不足、mock 数量；再取前 3 场统计代表性缺失字段
+6. **`renderEmptyState()`**：去掉 `dataHealth` 引用，所有容器加 id 是否存在判断
+7. **`PROJECT_MEMORY.md`**：把数据中心 tab 名 `about` 改成 `notes`
+8. **拆分数据获取函数**：
+   - `getCurrentMatches()`：当前赛事全部比赛，**模型管理台必须用它**
+   - `getFilteredMatchList()`：仅比赛列表 tab 专用，读 `stageFilter` 筛选
+   - `filteredMatches()`：保留向后兼容
+9. **模型管理台四处调用**：从 `filteredMatches()` 改成 `getCurrentMatches()`——避免回测样本因筛选器减少
+
+### 改动文件
+
+| 文件 | 类型 | 说明 |
+|---|---|---|
+| `preview.html` | bug 修复 + 功能增强 | 8 处改动（上方第 1-9 点） |
+| `PROJECT_MEMORY.md` | 文档对齐 | 加全局赛事选择器说明 / 数据 tab 名 about→notes / 数据获取函数语义说明 |
+
+### 边界（没动的东西）
+
+- ✅ 正式 `index.html` — 零改动
+- ✅ 正式评分引擎 / 权重 / 推荐逻辑 — 零改动
+- ✅ `engine/score-expander.js` — 零改动
+- ✅ 历史样本数据 — 零改动
+
+---
+
 ## 2026-06-13：修复三大模块切换逻辑 bug + 补齐 PROJECT_MEMORY.md 复盘规则
 
 ### 背景
