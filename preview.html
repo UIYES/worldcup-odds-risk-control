@@ -1176,13 +1176,31 @@
     const $ = (id) => document.getElementById(id);
 
     // ===== 三大模块切换 =====
+    // 关键：每个大模块有自己独立的默认子 tab 和独立的状态变量，
+    //      避免从"比赛工作台"切到"模型管理台"时 tab 状态错乱。
     // 当前状态：{ module: 'workbench'|'model'|'data', tab: 'xxx' }
     let currentModule = "workbench";
-    let workbenchTab = "today";  // 手机端默认进"今日比赛" tab
+    let workbenchTab = "today";   // 比赛工作台默认：今日比赛
+    let modelTab = "cross";       // 模型管理台默认：跨届汇总
+    let dataTab = "source";       // 数据中心默认：数据源状态
+
+    // 取指定模块的当前 tab
+    function getModuleTab(moduleName) {
+      if (moduleName === "workbench") return workbenchTab;
+      if (moduleName === "model") return modelTab;
+      if (moduleName === "data") return dataTab;
+      return workbenchTab;
+    }
+
+    // 存指定模块的 tab
+    function setModuleTab(moduleName, tabName) {
+      if (moduleName === "workbench") workbenchTab = tabName;
+      else if (moduleName === "model") modelTab = tabName;
+      else if (moduleName === "data") dataTab = tabName;
+    }
 
     function switchModule(moduleName, tabName) {
       currentModule = moduleName;
-      if (tabName) workbenchTab = tabName;
 
       // 顶部主导航
       const navBar = $("navBar");
@@ -1199,14 +1217,15 @@
       });
 
       // 在当前模块内切换到指定 sub-tab
-      switchSubTab(moduleName, tabName || workbenchTab);
+      // 规则：传了 tabName 用 tabName；否则用该模块自己的默认 tab
+      switchSubTab(moduleName, tabName || getModuleTab(moduleName));
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function switchSubTab(moduleName, tabName) {
       if (!tabName) return;
-      workbenchTab = tabName;
+      setModuleTab(moduleName, tabName);
       const container = $("module-" + moduleName);
       if (!container) return;
 
